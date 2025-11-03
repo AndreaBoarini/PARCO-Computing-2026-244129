@@ -5,7 +5,7 @@
 #include "print.h"
 #include "csr.h"
 
-int main() {
+int main(int argc, char *argv[]) {
     
     FILE *f;
     MM_typecode matcode;
@@ -13,10 +13,11 @@ int main() {
     int *I, *J, i, *row_ptr = NULL;
     double *val;
 
+
     srand(time(NULL));
 
     // read mtx file from matrix market
-    f = fopen("data/slide_matrix.mtx", "r");
+    f = fopen(argv[1], "r");
     if(f == NULL){
         printf("Error opening file\n");
         return -1;
