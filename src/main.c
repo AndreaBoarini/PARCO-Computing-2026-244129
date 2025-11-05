@@ -8,32 +8,14 @@
 
 int main(int argc, char *argv[]) {
     
-    FILE *f;
+    srand(time(NULL));
     MM_typecode matcode;
     int M, N, nz = 1;
     int *I, *J, i, *row_ptr = NULL;
     double *val;
 
-    srand(time(NULL));
-
     // read mtx file from matrix market format
-    f = fopen(argv[1], "r");
-    if(f == NULL){
-        printf("Error opening file\n");
-        return -1;
-    }
-    mm_read_banner(f, &matcode);
-    mm_read_mtx_crd_size(f, &M, &N, &nz);
-
-    I = malloc(nz * sizeof(int));
-    J = malloc(nz * sizeof(int));
-    val = malloc(nz * sizeof(double));
-
-    for (i = 0; i < nz; i++) {
-        fscanf(f, "%d %d %lg\n", &I[i], &J[i], &val[i]);
-    }
-
-    fclose(f);
+    readMtx(argv[1], &I, &J, &val, &nz, &M, &N);
 
     // printMatrixInCoo(I, J, val, nz);
     row_ptr = COOtoCSR(I, J, val, nz, M);

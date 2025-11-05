@@ -1,4 +1,29 @@
 #include "csr.h"
+#include "mmio.h"
+
+void readMtx(char* filename, int **I, int **J, double **val, int *nz, int *M, int *N) {
+    FILE *f;
+    MM_typecode matcode;
+    int i;
+
+    f = fopen(filename, "r");
+    if(f == NULL){
+        printf("Error opening file\n");
+        exit(-1);
+    }
+    mm_read_banner(f, &matcode);
+    mm_read_mtx_crd_size(f, M, N, nz);
+
+    *I = malloc((*nz) * sizeof(int));
+    *J = malloc((*nz) * sizeof(int));
+    *val = malloc((*nz) * sizeof(double));
+
+    for (i = 0; i < *nz; i++) {
+        fscanf(f, "%d %d %lg\n", &(*I)[i], &(*J)[i], &(*val)[i]);
+    }
+
+    fclose(f);
+}
 
 int* COOtoCSR(int *I, int *J, double *val, int nz, int n_rows) {
 
