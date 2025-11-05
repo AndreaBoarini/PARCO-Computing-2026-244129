@@ -1,5 +1,6 @@
 #include <stdio.h>
-#include <stdlib.h>
+#include <stdlib.h
+#include <omp.h>
 #include "timer.h"
 #include "mmio.h"
 #include "print.h"
