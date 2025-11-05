@@ -7,6 +7,13 @@
 #include "csr.h"
 
 int main(int argc, char *argv[]) {
+
+    // define the environment (thread infos, scheduling and chunksize)
+    int num_of_threads = 4;
+    int chunk_size = 1;
+    omp_sched_t schedule_type = omp_sched_static;
+    omp_set_num_threads(num_of_threads);
+    omp_set_schedule(schedule_type, chunk_size);
     
     srand(time(NULL));
     MM_typecode matcode;
@@ -36,11 +43,14 @@ int main(int argc, char *argv[]) {
     double start_time, finish_time;
     double *result = calloc(M, sizeof(double));
     GET_TIME(start_time);
+
+    #pragma omp parallel for schedule (runtime)
     for(int i = 0; i < M; i++) {
         for(int j = row_ptr[i]; j < row_ptr[i+1]; j++) {
             result[i] += val[j] * vec[J[j]-1]; // -1 for 0-based indexing
         }
     }
+
     GET_TIME(finish_time);
     double elapsed_time = finish_time - start_time;
     printf("Elapsed time for matrix-vector product: %f\n", elapsed_time);
