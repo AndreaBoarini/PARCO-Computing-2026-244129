@@ -25,7 +25,11 @@ compiler_options = {"-O0", "-O1", "-O2", "-O3", "-Ofast"}
 thread_options = {1, 2, 4, 8}
 chunk_sizes_options = {1, 10, 100, 1000}
 scheduling_options = {"static", "dynamic", "guided"}
+src_files = {"src/main.c", "src/csr.c", "src/print.c", "src/mmio.c"}
 
 # run the sequential simulation with the matrices available
 # in ./data and exploiting -O0, ... -Ofast optimization levels
 print("starting sequential simulation...")
+for co in compiler_options:
+    print(f"Compiling with option: {co}...")
+    subprocess.run(["gcc", "-g", "-Iinclude", "-o", "main", *src_files, co, "-o", "main"])
