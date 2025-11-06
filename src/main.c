@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <omp.h>
 #include <string.h>
 #include "timer.h"
 #include "mmio.h"
 #include "print.h"
 #include "csr.h"
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 int main(int argc, char *argv[]) {
 
