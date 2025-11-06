@@ -33,3 +33,10 @@ print("starting sequential simulation...")
 for co in compiler_options:
     print(f"Compiling with option: {co}...")
     subprocess.run(["gcc", "-g", "-Iinclude", "-o", "main", *src_files, co, "-o", "main"])
+    for matrix in input_matrices:
+        matrix_file, M, N, nz = matrix
+        result = subprocess.run(["./main", os.path.join(data_dir_path, matrix_file)],
+                                capture_output=True, text=True)
+        with open("sequential_results.csv", "a", newline='') as csvfile:
+            csvwriter = csv.writer(csvfile)
+            csvwriter.writerow([matrix_file, M, N, nz, co, result.stdout.strip()])
