@@ -58,8 +58,8 @@ print("done.")
 # with different number of threads, chunk sizes and scheduling options
 print("starting parallel simulation...")
 subprocess.run(["gcc", "-fopenmp", "-g", "-Iinclude", *src_files, "-o", "main"])
-for marix in input_matrices:
-    matrix_file, M, N, nz = matrix
+for matrix in input_matrices:
+    matrix_file, M, N, nz = matrix 
     for to in thread_options:
         for cso in chunk_sizes_options:
             for so in scheduling_options:
@@ -69,3 +69,4 @@ for marix in input_matrices:
                         result = subprocess.run(["./main", (data_dir_path + "/" + matrix_file), str(to), so, str(cso)], capture_output=True, text=True)
                         exec_time = result.stdout.strip()
                         writer.writerow([matrix_file, M, N, nz, 'Nan', to, cso, so, exec_time])
+print("done.")
