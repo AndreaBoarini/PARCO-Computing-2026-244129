@@ -28,16 +28,16 @@ int main(int argc, char *argv[]) {
         } else {
             num_of_threads = strtol(argv[2], NULL, 10);
             chunk_size = strtol(argv[4], NULL, 10);
-            printf("num_of_threads: %ld, chunk_size: %ld\n", num_of_threads, chunk_size);
+            //printf("num_of_threads: %ld, chunk_size: %ld\n", num_of_threads, chunk_size);
             if (strcmp(argv[3], "static") == 0) {
                 schedule_type = omp_sched_static;
-                printf("schedule_type: %d\n", schedule_type);
+                //printf("schedule_type: %d\n", schedule_type);
             } else if (strcmp(argv[3], "dynamic") == 0) {
                 schedule_type = omp_sched_dynamic;
-                printf("schedule_type: %d\n", schedule_type);
+                //printf("schedule_type: %d\n", schedule_type);
             } else if (strcmp(argv[3], "guided") == 0) {
                 schedule_type = omp_sched_guided;
-                printf("schedule_type: %d\n", schedule_type);
+                //printf("schedule_type: %d\n", schedule_type);
             } else {
                 fprintf(stderr, "Unknown schedule type. Use 'static', 'dynamic', or 'guided'.\n");
                 exit(EXIT_FAILURE);
