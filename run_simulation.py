@@ -40,7 +40,7 @@ with open(time_par_simulation_results, mode='w', newline='') as f:
     writer.writerow(header)
 
 # run the sequential simulation with the matrices available
-# in ./data and exploiting -O0, ... -Ofast optimization levels
+# in ./data and exploiting -O0, ... -O3 optimization levels
 print("starting sequential simulation...")
 for co in compiler_options:
     subprocess.run(["gcc", "-g", "-Iinclude", *src_files, co, "-o", "main"])

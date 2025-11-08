@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
 
     GET_TIME(finish_time);
     double elapsed_time = finish_time - start_time;
-    elapsed_time *= 1000.0;
+    elapsed_time *= 1e6;
     //printf("Elapsed time for matrix-vector product (ms): %f\n", elapsed_time);
     printf("%f\n", elapsed_time);
 
