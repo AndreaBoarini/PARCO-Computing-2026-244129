@@ -47,8 +47,9 @@ for co in compiler_options:
                 exec_time = result.stdout.strip()
                 writer.writerow([matrix_file, M, N, nz, co, 'Nan', 'Nan', 'Nan', exec_time])
 print("done.")
-writer = csv.writer(f)
-writer.writerow(["--------------- parallel simulation ---------------"])
+with open(time_simulation_results, mode='a', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerow(["--------------- parallel simulation ---------------"])
 
 # run the parallel simulation with the same matrices
 # with different number of threads, chunk sizes and scheduling options
