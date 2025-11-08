@@ -80,12 +80,13 @@ int main(int argc, char *argv[]) {
 
     // compute the matrix-vector product
     double start_time, finish_time;
+    int j;
     double *result = calloc(M, sizeof(double));
     GET_TIME(start_time);
 
     #pragma omp parallel for schedule (runtime)
-    for(int i = 0; i < M; i++) {
-        for(int j = row_ptr[i]; j < row_ptr[i+1]; j++) {
+    for(i = 0; i < M; i++) {
+        for(j = row_ptr[i]; j < row_ptr[i+1]; j++) {
             result[i] += val[j] * vec[J[j]-1]; // -1 for 0-based indexing
         }
     }

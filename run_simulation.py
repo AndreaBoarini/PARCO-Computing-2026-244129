@@ -1,5 +1,4 @@
 import csv, os
-import pandas as pd
 import subprocess
 
 data_dir_path = "./data"
