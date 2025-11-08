@@ -47,10 +47,19 @@ for co in compiler_options:
                 exec_time = result.stdout.strip()
                 writer.writerow([matrix_file, M, N, nz, co, 'Nan', 'Nan', 'Nan', exec_time])
 print("done.")
-with open(time_simulation_results, mode='a', newline='') as f:
-    writer = csv.writer(f)
-    writer.writerow(["--------------- parallel simulation ---------------"])
 
 # run the parallel simulation with the same matrices
 # with different number of threads, chunk sizes and scheduling options
 print("starting parallel simulation...")
+subprocess.run(["gcc", "-fopenmp", "-g", "-Iinclude", *src_files, "-o", "main"])
+for marix in input_matrices:
+    matrix_file, M, N, nz = matrix
+    for to in thread_options:
+        for cso in chunk_sizes_options:
+            for so in scheduling_options:
+                for i in range(1, 11):
+                    with open(time_simulation_results, mode='a', newline='') as f:
+                        writer = csv.writer(f)
+                        result = subprocess.run(["./main", (data_dir_path + "/" + matrix_file), str(to), so, str(cso)], capture_output=True, text=True)
+                        exec_time = result.stdout.strip()
+                        writer.writerow([matrix_file, M, N, nz, 'Nan', to, cso, so, exec_time])
