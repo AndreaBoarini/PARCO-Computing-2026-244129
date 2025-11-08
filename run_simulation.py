@@ -22,7 +22,7 @@ for f in os.listdir(data_dir_path):
                     input_matrices.append((f, M, N, nz))
                     break
 
-compiler_options = {"-O0", "-O1", "-O2", "-O3", "-Ofast"}
+compiler_options = {"-O0", "-O1", "-O2", "-O3"}
 thread_options = {1, 2, 4, 8}
 chunk_sizes_options = {1, 10, 100, 1000}
 scheduling_options = {"static", "dynamic", "guided"}
