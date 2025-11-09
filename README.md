@@ -73,7 +73,7 @@ there wouldn't be sufficient information to plot charts and to make performance 
 
 The resulting images of the plots generated can be found in `results/`. Note that they'll be the same of the ones used in `report.pdf` for results explanation.
 Any run of the project will cause an **overwriting** both on the `.csv` and `.png` files which eventually will lead to different observable results than those reported
-on `report.pdf` (the difference between the values although is minimal does not affect the conlusions of the research).
+on `report.pdf` (the difference between the values although is minimal and does not affect on the conclusions of the research).
 
 # Job submission
 
