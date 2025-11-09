@@ -45,6 +45,8 @@ As well as reproducing all the measurements, it's also possible to observe the e
 To run the algorithm **sequentially** use the following command in the direcotry folder:
 ```
 gcc -g -Iinclude -<compiler-optimization> src/main.c src/csr.c src/mmio.c src/print.c -o main
+```
+```
 ./main data/<matrix-input>
 ```
 Or to operate **parallely**:
