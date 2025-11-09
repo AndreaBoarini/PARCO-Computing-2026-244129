@@ -52,6 +52,8 @@ gcc -g -Iinclude -<compiler-optimization> src/main.c src/csr.c src/mmio.c src/pr
 Or to operate **parallely**:
 ```
 gcc -g -Iinclude -fopenmp -<compiler-optimization> src/main.c src/csr.c src/mmio.c src/print.c -o main
+```
+```
 ./main data/<matrix-input> <thread-number> <scheduling-option> <chunk-size>
 ```
 For unaccepted directive formats (e.g. too many/few arguments) the program will automatically detect the error and abort the process.
