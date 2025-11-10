@@ -14,5 +14,7 @@ int main(int argc, char *argv[]) {
         vec[a] += b;
     }
 
+    free(vec);
+
     return 0;
 }
