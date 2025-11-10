@@ -31,7 +31,7 @@ echo "matrix_name,rows,cols,nz,compiler_option,thread_option,chunk_size_option,s
 : '
 
 gcc -g -Iinclude "${src_files[@]}" -o main
-perf stat -e L1-dcache-loads,L1-dcache-load-misses,LLC-loads,LLC-misses ./main data/bcsstk13.mtx
+perf stat -e L1-dcache-loads,L1-dcache-load-misses,LLC-loads,LLC-misses ./main data/bcsstm21.mtx
 
 : '
 # Sequential simulation
