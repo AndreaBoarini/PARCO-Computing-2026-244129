@@ -1,8 +1,7 @@
 #!/bin/bash
 
 data_dir_path="./data"
-time_seq_simulation_results="times_seq.csv"
-time_par_simulation_results="times_par.csv"
+time_simulation_results="time_results.csv"
 
 compiler_options=("-O0" "-O1" "-O2" "-O3")
 thread_options=(1 2 4 8)
@@ -35,7 +34,7 @@ for co in "${compiler_options[@]}"; do
         matrix_name=$(basename "$matrix_file")
         for i in {1..10}; do
             exec_time=$(./main "$matrix_file")
-            echo "$matrix_name,$M,$N,$nz,$co,Nan,Nan,Nan,$exec_time" >> "$time_seq_simulation_results"
+            echo "$matrix_name,$M,$N,$nz,$co,Nan,Nan,Nan,$exec_time" >> "$time_simulation_results"
         done
     done
 done
@@ -52,7 +51,7 @@ for matrix_info in "${input_matrices[@]}"; do
             for so in "${scheduling_options[@]}"; do
                 for i in {1..10}; do
                     exec_time=$(./main "$matrix_file" "$to" "$so" "$cso")
-                    echo "$matrix_name,$M,$N,$nz,Nan,$to,$cso,$so,$exec_time" >> "$time_par_simulation_results"
+                    echo "$matrix_name,$M,$N,$nz,Nan,$to,$cso,$so,$exec_time" >> "$time_simulation_results"
                 done
             done
         done
