@@ -2,8 +2,8 @@ import csv, os
 import subprocess
 
 data_dir_path = "./data"
-time_seq_simulation_results = "times_seq.csv"
-time_par_simulation_results = "times_par.csv"
+time_seq_simulation_results = "times_seq_py.csv"
+time_par_simulation_results = "times_par_py.csv"
 
 # extract from each file the matrices' intrinsics
 input_matrices = []
@@ -39,12 +39,6 @@ with open(time_par_simulation_results, mode='w', newline='') as f:
     header = ["matrix_name", "rows", "cols", "nz", "compiler_option", "thread_option", "chunk_size_option", "scheduling_option", "exec_time"]
     writer.writerow(header)
 
-def filter_perf_output(output):
-    lines = output.strip().split('\n')
-    filtered = []
-    for line in lines:
-        if "L1-dcache-loads" in line or "L1-dcache-load-misses" in line or
-
 # run the sequential simulation with the matrices available
 # in ./data and exploiting -O0, ... -O3 optimization levels
 print("starting sequential simulation...")
@@ -58,10 +52,6 @@ for co in compiler_options:
                 result = subprocess.run(["./main", (data_dir_path + "/" + matrix_file)], capture_output=True, text=True)
                 exec_time = result.stdout.strip()
                 writer.writerow([matrix_file, M, N, nz, co, 'Nan', 'Nan', 'Nan', exec_time])
-                cache_info_unfiltered = subprocess.run(["perf", "stat", "-e", "L1-dcache-loads", "L1-dcache-load-misses",
-                                                    "LLC-loads", "LLC-load-misses", "./main",
-                                                    (data_dir_path + "/" + matrix_file)], capture_output=True, text=True)
-                
 print("done.")
 
 # run the parallel simulation with the same matrices
