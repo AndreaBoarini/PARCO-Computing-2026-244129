@@ -2,7 +2,7 @@
 
 data_dir_path="./data"
 time_simulation_results="time_results.csv"
-chache_simulation_results="cache_results.csv"
+cache_simulation_results="cache_results.csv"
 
 compiler_options=("-O0" "-O1" "-O2" "-O3")
 thread_options=(1 2 4 8)
@@ -23,10 +23,10 @@ for f in "$data_dir_path"/*.mtx; do
 done
 
 # Csv header for time results
-echo "matrix_name,rows,cols,nz,compiler_option,thread_option,chunk_size_option,scheduling_option,exec_time" >> "$time_simulation_results"
+echo "matrix_name,rows,cols,nz,compiler_option,thread_option,chunk_size_option,scheduling_option,exec_time" > "$time_simulation_results"
 # Csv header for cache results
 echo "matrix_name,rows,cols,nz,compiler_option,thread_option,chunk_size_option,scheduling_option, \
-        L1_loads,L1_misses,L1_misses_perc,LLC_loads,LLC_misses,LLC_misses_perc" >> "$cache_simulation_results"
+        L1_loads,L1_misses,L1_misses_perc,LLC_loads,LLC_misses,LLC_misses_perc" > "$cache_simulation_results"
 
 # Sequential simulation
 echo "starting sequential simulation..."
