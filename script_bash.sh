@@ -22,8 +22,8 @@ for f in "$data_dir_path"/*.mtx; do
 done
 
 # Crea CSV intestazioni
-echo "matrix_name,rows,cols,nz,compiler_option,thread_option,chunk_size_option,scheduling_option,exec_time" > "$time_seq_simulation_results"
-echo "matrix_name,rows,cols,nz,compiler_option,thread_option,chunk_size_option,scheduling_option,exec_time" > "$time_par_simulation_results"
+echo "matrix_name,rows,cols,nz,compiler_option,thread_option,chunk_size_option,scheduling_option,exec_time" > "$time_simulation_results"
+echo "matrix_name,rows,cols,nz,compiler_option,thread_option,chunk_size_option,scheduling_option,exec_time" > "$time_simulation_results"
 
 # SEQUENZIALE
 echo "starting sequential simulation..."
