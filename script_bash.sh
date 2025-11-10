@@ -52,6 +52,7 @@ for co in "${compiler_options[@]}"; do
         matrix_name=$(basename "$matrix_file")
         for i in {1..5}; do
             perf_output=$(perf stat -e L1-dcache-loads,L1-dcache-load-misses,LLC-loads,LLC-load-misses ./main "$matrix_file" 2>&1)
+            echo "$perf_output"
             L1_loads=$(echo "$perf_output" | grep 'L1-dcache-loads' | awk '{print $1}')
             L1_misses=$(echo "$perf_output" | grep 'L1-dcache-misses' | awk '{print $1}')
             L1_misses_perc=$(echo "$perf_output" | grep 'L1-dcache-misses' | awk -F'#' '{print $2}' | awk '{print $1}')
