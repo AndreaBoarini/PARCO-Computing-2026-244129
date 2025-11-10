@@ -22,12 +22,18 @@ for f in "$data_dir_path"/*.mtx; do
     done < "$f"
 done
 
+: '
 # Csv header for time results
 echo "matrix_name,rows,cols,nz,compiler_option,thread_option,chunk_size_option,scheduling_option,exec_time" > "$time_simulation_results"
 # Csv header for cache results
 echo "matrix_name,rows,cols,nz,compiler_option,thread_option,chunk_size_option,scheduling_option, \
         L1_loads,L1_misses,L1_misses_perc,LLC_loads,LLC_misses,LLC_misses_perc" > "$cache_simulation_results"
+: '
 
+gcc -g -Iinclude "${src_files[@]}" -o main
+perf stat -e L1-dcache-loads,L1-dcache-load-misses,LLC-loads,LLC-misses ./main data/bcsstk13.mtx
+
+: '
 # Sequential simulation
 echo "starting sequential simulation..."
 for co in "${compiler_options[@]}"; do
@@ -108,3 +114,5 @@ for matrix_info in "${input_matrices[@]}"; do
     done
 done
 echo "done."
+
+: '
