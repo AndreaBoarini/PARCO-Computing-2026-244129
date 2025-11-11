@@ -39,8 +39,7 @@ LLC_loads=$(echo "$output" | grep 'LLC-loads' | awk '{print $1}')
 LLC_misses=$(echo "$output" | grep 'LLC-misses' | awk '{print $1}')
 L1_miss_perc=$(echo "$output" | grep 'L1-dcache-load-misses' | awk '{print $4}')
 LLC_miss_perc=$(echo "$output" | grep 'LLC-misses' | awk '{print $4}')
-echo "$matrix_name,$M,$N,$nz,$co,Nan,Nan,Nan, \
-        $L1_loads,$L1_misses,$L1_miss_perc,$LLC_loads,$LLC_misses,$LLC_miss_perc" >> "$cache_simulation_results"
+echo "$matrix_name,$M,$N,$nz,$co,Nan,Nan,Nan,$L1_loads,$L1_misses,$L1_miss_perc,$LLC_loads,$LLC_misses,$LLC_miss_perc" >> "$cache_simulation_results"
 
 
 : '
