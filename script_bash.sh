@@ -22,27 +22,15 @@ for f in "$data_dir_path"/*.mtx; do
     done < "$f"
 done
 
-: '
+
 # Csv header for time results
 echo "matrix_name,rows,cols,nz,compiler_option,thread_option,chunk_size_option,scheduling_option,exec_time" > "$time_simulation_results"
 # Csv header for cache results
 echo "matrix_name,rows,cols,nz,compiler_option,thread_option,chunk_size_option,scheduling_option, \
         L1_loads,L1_misses,L1_misses_perc,LLC_loads,LLC_misses,LLC_misses_perc" > "$cache_simulation_results"
-: '
-
-gcc -g -Iinclude "${src_files[@]}" -o main
-output=$(perf stat -e L1-dcache-loads,L1-dcache-load-misses,LLC-loads,LLC-misses ./main data/bcsstm21.mtx 2>&1)
-echo "$output"
-L1_loads=$(echo "$output" | grep 'L1-dcache-loads' | awk '{print $1}')
-L1_misses=$(echo "$output" | grep 'L1-dcache-load-misses' | awk '{print $1}')
-LLC_loads=$(echo "$output" | grep 'LLC-loads' | awk '{print $1}')           
-LLC_misses=$(echo "$output" | grep 'LLC-misses' | awk '{print $1}')
-L1_miss_perc=$(echo "$output" | grep 'L1-dcache-load-misses' | awk '{print $4}')
-LLC_miss_perc=$(echo "$output" | grep 'LLC-misses' | awk '{print $4}')
-echo "$matrix_name,$M,$N,$nz,$co,Nan,Nan,Nan,$L1_loads,$L1_misses,$L1_miss_perc,$LLC_loads,$LLC_misses,$LLC_miss_perc" >> "$cache_simulation_results"
 
 
-: '
+
 # Sequential simulation
 echo "starting sequential simulation..."
 for co in "${compiler_options[@]}"; do
@@ -68,16 +56,16 @@ for co in "${compiler_options[@]}"; do
         for i in {1..5}; do
             output=$(perf stat -e L1-dcache-loads,L1-dcache-load-misses,LLC-loads,LLC-misses ./main "$matrix_file" 2>&1)
             L1_loads=$(echo "$output" | grep 'L1-dcache-loads' | awk '{print $1}')
-            L1_misses=$(echo "$output" | grep 'L1-dcache-load-misses' | awk '{print $1}')            
+            L1_misses=$(echo "$output" | grep 'L1-dcache-load-misses' | awk '{print $1}')
             LLC_loads=$(echo "$output" | grep 'LLC-loads' | awk '{print $1}')           
             LLC_misses=$(echo "$output" | grep 'LLC-misses' | awk '{print $1}')
             L1_miss_perc=$(echo "$output" | grep 'L1-dcache-load-misses' | awk '{print $4}')
             LLC_miss_perc=$(echo "$output" | grep 'LLC-misses' | awk '{print $4}')
-            echo "$matrix_name,$M,$N,$nz,$co,Nan,Nan,Nan, \
-                $L1_loads,$L1_misses,$L1_miss_perc,$LLC_loads,$LLC_misses,$LLC_miss_perc" >> "$cache_simulation_results"
+            echo "$matrix_name,$M,$N,$nz,$co,Nan,Nan,Nan,$L1_loads,$L1_misses,$L1_miss_perc,$LLC_loads,$LLC_misses,$LLC_miss_perc" >> "$cache_simulation_results"
         done
     done
 done
+echo "done."
 
 # Parallel simulation
 echo "starting parallel simulation..."
@@ -108,20 +96,17 @@ for matrix_info in "${input_matrices[@]}"; do
         for cso in "${chunk_sizes_options[@]}"; do
             for so in "${scheduling_options[@]}"; do
                 for i in {1..5}; do
-                    perf_output=$(perf stat -e L1-dcache-loads,L1-dcache-load-misses,LLC-loads,LLC-load-misses ./main "$matrix_file" "$to" "$so" "$cso" 2>&1)
-                    L1_loads=$(echo "$perf_output" | grep 'L1-dcache-loads' | awk '{print $1}')
-                    L1_misses=$(echo "$perf_output" | grep 'L1-dcache-misses' | awk '{print $1}')
-                    L1_misses_perc=$(echo "$perf_output" | grep 'L1-dcache-misses' | awk -F'#' '{print $2}' | awk '{print $1}')
-                    LLC_loads=$(echo "$perf_output" | grep 'LLC-loads' | awk '{print $1}')
-                    LLC_misses=$(echo "$perf_output" | grep 'LLC-load-misses' | awk '{print $1}')
-                    LLC_misses_perc=$(echo "$perf_output" | grep 'LLC-load-misses' | awk -F'#' '{print $2}' | awk '{print $1}')
-                    echo "$matrix_name,$M,$N,$nz,Nan,$to,$cso,$so, \
-                        $L1_loads,$L1_misses,$L1_misses_perc,$LLC_loads,$LLC_misses,$LLC_misses_perc" >> "$cache_simulation_results"
+                    output=$(perf stat -e L1-dcache-loads,L1-dcache-load-misses,LLC-loads,LLC-misses ./main "$matrix_file" "$to" "$so" "$cso" 2>&1)
+                    L1_loads=$(echo "$output" | grep 'L1-dcache-loads' | awk '{print $1}')
+                    L1_misses=$(echo "$output" | grep 'L1-dcache-load-misses' | awk '{print $1}')
+                    LLC_loads=$(echo "$output" | grep 'LLC-loads' | awk '{print $1}')           
+                    LLC_misses=$(echo "$output" | grep 'LLC-misses' | awk '{print $1}')
+                    L1_miss_perc=$(echo "$output" | grep 'L1-dcache-load-misses' | awk '{print $4}')
+                    LLC_miss_perc=$(echo "$output" | grep 'LLC-misses' | awk '{print $4}')
+                    echo "$matrix_name,$M,$N,$nz,Nan,$to,$cso,$so,$L1_loads,$L1_misses,$L1_miss_perc,$LLC_loads,$LLC_misses,$LLC_miss_perc" >> "$cache_simulation_results"
                 done
             done
         done
     done
 done
 echo "done."
-
-: '
