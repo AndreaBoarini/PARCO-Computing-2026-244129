@@ -26,8 +26,7 @@ done
 # Csv header for time results
 echo "matrix_name,rows,cols,nz,compiler_option,thread_option,chunk_size_option,scheduling_option,exec_time" > "$time_simulation_results"
 # Csv header for cache results
-echo "matrix_name,rows,cols,nz,compiler_option,thread_option,chunk_size_option,scheduling_option, \
-        L1_loads,L1_misses,L1_misses_perc,LLC_loads,LLC_misses,LLC_misses_perc" > "$cache_simulation_results"
+echo "matrix_name,rows,cols,nz,compiler_option,thread_option,chunk_size_option,scheduling_option,L1_loads,L1_misses,L1_misses_perc,LLC_loads,LLC_misses,LLC_misses_perc" > "$cache_simulation_results"
 
 
 
