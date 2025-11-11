@@ -33,11 +33,18 @@ echo "matrix_name,rows,cols,nz,compiler_option,thread_option,chunk_size_option,s
 gcc -g -Iinclude "${src_files[@]}" -o main
 output=$(perf stat -e L1-dcache-loads,L1-dcache-load-misses,LLC-loads,LLC-misses ./main data/bcsstm21.mtx 2>&1)
 echo "$output"
-echo "$output" | grep 'L1-dcache-loads' | awk '{print $1}'
-echo "$output" | grep 'L1-dcache-load-misses' | awk '{print $1}'
-echo "$output" | grep 'LLC-loads' | awk '{print $1}'
-echo "$output" | grep 'LLC-misses' | awk '{print $1}'
-
+L1_loads=$(echo "$output" | grep 'L1-dcache-loads' | awk '{print $1}')
+L1_misses=$(echo "$output" | grep 'L1-dcache-misses' | awk '{print $1}')            
+LLC_loads=$(echo "$output" | grep 'LLC-loads' | awk '{print $1}')           
+LLC_misses=$(echo "$output" | grep 'LLC-misses' | awk '{print $1}')
+echo "L1_loads: $L1_loads"
+echo "L1_misses: $L1_misses"
+echo "LLC_loads: $LLC_loads"
+echo "LLC_misses: $LLC_misses"
+L1_miss_perc=$((L1_misses * 100 / L1_loads))
+echo "L1_miss_perc: $L1_miss_perc"
+LLC_miss_perc=$((LLC_misses * 100 / LLC_loads))
+echo "LLC_miss_perc: $LLC_miss_perc"
 
 : '
 # Sequential simulation
@@ -66,12 +73,10 @@ for co in "${compiler_options[@]}"; do
             perf_output=$(perf stat -e L1-dcache-loads,L1-dcache-load-misses,LLC-loads,LLC-load-misses ./main "$matrix_file" 2>&1)
             L1_loads=$(echo "$perf_output" | grep 'L1-dcache-loads' | awk '{print $1}')
             L1_misses=$(echo "$perf_output" | grep 'L1-dcache-misses' | awk '{print $1}')
-            L1_misses_perc=$(echo "$perf_output" | grep 'L1-dcache-misses' | awk -F'#' '{print $2}' | awk '{print $1}')
             LLC_loads=$(echo "$perf_output" | grep 'LLC-loads' | awk '{print $1}')
-            LLC_misses=$(echo "$perf_output" | grep 'LLC-load-misses' | awk '{print $1}')
-            LLC_misses_perc=$(echo "$perf_output" | grep 'LLC-load-misses' | awk -F'#' '{print $2}' | awk '{print $1}')
+            LLC_misses=$(echo "$perf_output" | grep 'LLC-misses' | awk '{print $1}')
             echo "$matrix_name,$M,$N,$nz,$co,Nan,Nan,Nan, \
-                $L1_loads,$L1_misses,$L1_misses_perc,$LLC_loads,$LLC_misses,$LLC_misses_perc" >> "$cache_simulation_results"
+                $L1_loads,$L1_misses,$LLC_loads,$LLC_misses," >> "$cache_simulation_results"
         done
     done
 done
