@@ -31,8 +31,13 @@ echo "matrix_name,rows,cols,nz,compiler_option,thread_option,chunk_size_option,s
 : '
 
 gcc -g -Iinclude "${src_files[@]}" -o main
-perf stat -e L1-dcache-loads,L1-dcache-load-misses,LLC-loads,LLC-misses ./main data/bcsstm21.mtx 2>&1 \
-    | grep 'L1-dcache-loads' | awk '{print $1}'
+output = $(perf stat -e L1-dcache-loads,L1-dcache-load-misses,LLC-loads,LLC-misses ./main data/bcsstm21.mtx 2>&1)
+echo "$output"
+echo "$output" | grep 'L1-dcache-loads' | awk '{print $1}'
+echo "$output" | grep 'L1-dcache-load-misses' | awk '{print $1}'
+echo "$output" | grep 'LLC-loads' | awk '{print $1}'
+echo "$output" | grep 'LLC-misses' | awk '{print $1}'
+
 
 : '
 # Sequential simulation
