@@ -37,7 +37,7 @@ L1_loads=$(echo "$output" | grep 'L1-dcache-loads' | awk '{print $1}')
 L1_misses=$(echo "$output" | grep 'L1-dcache-load-misses' | awk '{print $1}')            
 LLC_loads=$(echo "$output" | grep 'LLC-loads' | awk '{print $1}')           
 LLC_misses=$(echo "$output" | grep 'LLC-misses' | awk '{print $1}')
-L1_miss_perc=$(echo "$output" | grep 'LLC-misses' | awk '{print $4}')
+L1_miss_perc=$(echo "$output" | grep 'L1-dcache-load-misses' | awk '{print $4}')
 LLC_miss_perc=$(echo "$output" | grep 'LLC-misses' | awk '{print $4}')
 echo "L1_loads: $L1_loads"
 echo "L1_misses: $L1_misses"
