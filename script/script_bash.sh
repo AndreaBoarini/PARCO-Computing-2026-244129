@@ -2,8 +2,8 @@
 
 cd ..
 data_dir_path="./data"
-time_simulation_results="time_results.csv"
-cache_simulation_results="cache_results.csv"
+time_simulation_results="results/time_results.csv"
+cache_simulation_results="results/cache_results.csv"
 
 compiler_options=("-O0" "-O1" "-O2" "-O3")
 thread_options=(1 2 4 8 16 32 64)
