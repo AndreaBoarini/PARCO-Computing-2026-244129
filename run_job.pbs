@@ -1,0 +1,23 @@
+#!/bin/bash
+#PBS -N SpMV-product
+#PBS -o ./job.out
+#PBS -o ./job.err
+#PBS -q short_cpuQ
+#PBS -l walltime=0:03:00
+#PBS -l select=1:ncpus=1
+#PBS -l mem=4gb
+#PBS -M andrea.boarini@studenti.unitn.it
+#PBS -m a
+#PBS -m b
+#PBS -m e
+
+module load gcc91
+module load perf
+
+cd "$PBS_O_WORKDIR"
+
+chmod +x retrieve_input
+./retrieve_input
+
+chmod +x script_bash.sh
+./script_bash.sh
