@@ -52,10 +52,8 @@ for co in "${compiler_options[@]}"; do
     for matrix_info in "${input_matrices[@]}"; do
         IFS=',' read -r matrix_file M N nz <<< "$matrix_info"
         matrix_name=$(basename "$matrix_file")
-        for pso in "${perf_start_options[@]}"; do
-            output=$(perf stat -x ":" -e L1-dcache-loads,L1-dcache-load-misses,LLC-loads,LLC-misses ./main "$pso" "$matrix_file" 2>&1)
-            echo "$matrix_name,$M,$N,$nz,$co,Nan,Nan,Nan,$pso,$output" >> "$cache_simulation_results"
-        done
+        output=$(perf stat -x "," -e L1-dcache-loads,L1-dcache-load-misses,LLC-loads,LLC-misses ./main "C-N" "$matrix_file" 2>&1)
+        echo "$matrix_name,$M,$N,$nz,$co,Nan,Nan,Nan,C-N,$output" >> "$cache_simulation_results"
     done
 done
 echo "done."
@@ -88,10 +86,8 @@ for matrix_info in "${input_matrices[@]}"; do
     for to in "${thread_options[@]}"; do
         for cso in "${chunk_sizes_options[@]}"; do
             for so in "${scheduling_options[@]}"; do
-                for pso in "${perf_start_options[@]}"; do
-                    output=$(perf stat -x ":" -e L1-dcache-loads,L1-dcache-load-misses,LLC-loads,LLC-misses ./main "$pso" "$matrix_file" "$to" "$so" "$cso" 2>&1)
-                    echo "$matrix_name,$M,$N,$nz,Nan,$to,$cso,$so,$pso,$output" >> "$cache_simulation_results"
-                done
+                output=$(perf stat -x "," -e L1-dcache-loads,L1-dcache-load-misses,LLC-loads,LLC-misses ./main "C-N" "$matrix_file" "$to" "$so" "$cso" 2>&1)
+                echo "$matrix_name,$M,$N,$nz,Nan,$to,$cso,$so,C-N,$output" >> "$cache_simulation_results"
             done
         done
     done
