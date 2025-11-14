@@ -3,7 +3,7 @@ set -e
 
 trap 'echo "Error occurred at line $LINENO while executing command: $BASH_COMMAND"' ERR
 
-DATA_DIR="./data"
+DATA_DIR="../data"
 mkdir -p "$DATA_DIR"
 cd "$DATA_DIR" || exit
 
