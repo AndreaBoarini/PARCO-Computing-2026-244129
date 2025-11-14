@@ -1,6 +1,6 @@
 #!/bin/bash
 
-data_dir_path="./results"
+data_dir_path="./data"
 time_simulation_results="time_results.csv"
 cache_simulation_results="cache_results.csv"
 
