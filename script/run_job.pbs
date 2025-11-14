@@ -15,7 +15,6 @@ module load perf
 
 cd "$PBS_O_WORKDIR"
 
-cd script
 chmod +x script_bash.sh
 ./script_bash.sh
 
