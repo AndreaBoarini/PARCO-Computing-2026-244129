@@ -55,11 +55,15 @@ int main(int argc, char *argv[]) {
         }
         #endif
 
-        if(strcmp(argv[1], "C") == 0) {
-            perf_cold_start = 1;
+        if(strcmp(argv[1], "C-N") == 0) {
+            perf_cold_start = 3;
+        } else if (strcmp(argv[1], "W-N") == 0) {
+            perf_cold_start = 2;
         } else if (strcmp(argv[1], "W") == 0) {
             perf_cold_start = 0;
-        } else {
+        } else if (strcmp(argv[1], "C") == 0) {
+            perf_cold_start = 1;
+        }else {
             fprintf(stderr, "Unknown perf_cold_start value. Use 'C' or 'W'.\n");
             fprintf(stderr, "Usage: %s <perf_cold_start> | <mtx_file> <num_of_threads> <schedule_type> <chunk_size> \n", argv[0]);
             exit(EXIT_FAILURE);
@@ -90,7 +94,7 @@ int main(int argc, char *argv[]) {
     // compute the matrix-vector product
     double start_time, finish_time, elapsed_time;
     int j, iterations, limit;
-    if(perf_cold_start == 1)
+    if(perf_cold_start == 1 || perf_cold_start == 3)
         limit = 1;
     else
         limit = 10;        
@@ -110,7 +114,8 @@ int main(int argc, char *argv[]) {
         GET_TIME(finish_time);
         elapsed_time = finish_time - start_time;
         elapsed_time *= 1000;
-        printf("%f\n", elapsed_time);
+        if(perf_cold_start == 0 || perf_cold_start == 2)
+            printf("%f\n", elapsed_time);
     }
 
     free(I);
