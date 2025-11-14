@@ -15,8 +15,5 @@ module load perf
 
 cd "$PBS_O_WORKDIR"
 
-chmod +x retrieve_input
-./retrieve_input
-
 chmod +x script_bash.sh
 ./script_bash.sh
