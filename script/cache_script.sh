@@ -22,7 +22,7 @@ for f in "$data_dir_path"/*.mtx; do
 done
 
 # Csv header for cache results
-echo "matrix_name,rows,cols,nz,compiler_option,thread_option,chunk_size_option,scheduling_option,perf_start,L1_loads,L1_misses,L1_misses_perc,LLC_loads,LLC_misses,LLC_misses_perc" > "$cache_simulation_results"
+echo "matrix_name,rows,cols,nz,compiler_option,thread_option,chunk_size_option,scheduling_option,perf_start,L1_loads,L1_misses,LLC_loads,LLC_misses" > "$cache_simulation_results"
 
 # Sequential caching simulation
 echo "starting sequential caching..."
