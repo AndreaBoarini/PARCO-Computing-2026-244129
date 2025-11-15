@@ -18,7 +18,7 @@ cd "$PBS_O_WORKDIR"
 chmod +x time_script.sh
 ./time_script.sh
 
-cd script
+cd script/
 
 chmod +x cache_script.sh
 ./cache_script.sh
