@@ -37,7 +37,7 @@ echo "done."
 
 # Parallel caching simulation
 echo "starting parallel caching..."
-gcc -fopenmp -g -O3-Iinclude "${src_files[@]}" -o main
+gcc -fopenmp -g -O3 -Iinclude "${src_files[@]}" -o main
 for matrix_info in "${input_matrices[@]}"; do
     IFS=',' read -r matrix_file M N nz <<< "$matrix_info"
     matrix_name=$(basename "$matrix_file")
