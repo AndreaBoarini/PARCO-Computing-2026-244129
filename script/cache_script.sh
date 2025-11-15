@@ -26,28 +26,26 @@ echo "matrix_name,rows,cols,nz,compiler_option,thread_option,chunk_size_option,s
 
 # Sequential caching simulation
 echo "starting sequential caching..."
-for co in "${compiler_options[@]}"; do
-    gcc -g -Iinclude "${src_files[@]}" "$co" -o main
+gcc -g -Iinclude -O3 "${src_files[@]}" -o main
     for matrix_info in "${input_matrices[@]}"; do
         IFS=',' read -r matrix_file M N nz <<< "$matrix_info"
         matrix_name=$(basename "$matrix_file")
-        output=$(perf stat -x "," -e L1-dcache-loads,L1-dcache-load-misses,LLC-loads,LLC-misses ./main "C-N" "$matrix_file" 2>&1)
-        echo "$matrix_name,$M,$N,$nz,$co,Nan,Nan,Nan,C-N,$output" >> "$cache_simulation_results"
+        output=$(perf stat -x "," -e L1-dcache-loads,L1-dcache-load-misses,LLC-loads,LLC-misses ./main "C-N" "$matrix_file" 2>&1 | cut -d',' -f1 | head -n 4 | paste -sd ',')
+        echo "$matrix_name,$M,$N,$nz,-O3,Nan,Nan,Nan,C-N,$output" >> "$cache_simulation_results"
     done
-done
 echo "done."
 
 # Parallel caching simulation
 echo "starting parallel caching..."
-gcc -fopenmp -g -Iinclude "${src_files[@]}" -o main
+gcc -fopenmp -g -O3-Iinclude "${src_files[@]}" -o main
 for matrix_info in "${input_matrices[@]}"; do
     IFS=',' read -r matrix_file M N nz <<< "$matrix_info"
     matrix_name=$(basename "$matrix_file")
     for to in "${thread_options[@]}"; do
         for cso in "${chunk_sizes_options[@]}"; do
             for so in "${scheduling_options[@]}"; do
-                output=$(perf stat -x "," -e L1-dcache-loads,L1-dcache-load-misses,LLC-loads,LLC-misses ./main "C-N" "$matrix_file" "$to" "$so" "$cso" 2>&1)
-                echo "$matrix_name,$M,$N,$nz,Nan,$to,$cso,$so,C-N,$output" >> "$cache_simulation_results"
+                output=$(perf stat -x "," -e L1-dcache-loads,L1-dcache-load-misses,LLC-loads,LLC-misses ./main "C-N" "$matrix_file" "$to" "$so" "$cso" 2>&1 | cut -d',' -f1 | head -n 4 | paste -sd ',')
+                echo "$matrix_name,$M,$N,$nz,-O3,$to,$cso,$so,C-N,$output" >> "$cache_simulation_results"
             done
         done
     done
