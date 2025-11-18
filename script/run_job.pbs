@@ -2,9 +2,9 @@
 #PBS -N SpMV-product
 #PBS -o ./job.out
 #PBS -o ./job.err
-#PBS -q common_cpuQ
-#PBS -l walltime=7:00:00
-#PBS -l select=1:ncpus=64:mem=4gb
+#PBS -q short_cpuQ
+#PBS -l walltime=5:59:59
+#PBS -l select=1:ncpus=64:mem=16gb
 #PBS -M andrea.boarini@studenti.unitn.it
 #PBS -m a
 #PBS -m b
