@@ -1,5 +1,5 @@
-#ifndef __PRINT_H__
-#define __PRINT_H__
+#ifndef _PRINT_H_
+#define _PRINT_H_
 
 void printVectorInt(int *vec, int size, char* tag);
 void printVectorDouble(double *vec, int size, char* tag);

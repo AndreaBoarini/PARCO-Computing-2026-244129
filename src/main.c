@@ -9,6 +9,17 @@
 #include <omp.h>
 #endif
 
+typedef struct {
+    int n_rows;
+    int n_cols;
+    int nnz;
+    int *row_ptr;
+    int *I;
+    int *J;
+    double* result;
+    double *val;
+} Procedure;
+
 int main(int argc, char *argv[]) {
 
     int perf_cold_start = 0;
@@ -73,21 +84,24 @@ int main(int argc, char *argv[]) {
     
     srand(time(NULL));
     MM_typecode matcode;
-    int M, N, nz = 1;
-    int *I, *J, i, *row_ptr = NULL;
-    double *val;
+    Procedure input;
 
     // read mtx file from matrix market format
-    readMtx(argv[2], &I, &J, &val, &nz, &M, &N);
+    readMtx(argv[2], &input.I, &input.J, &input.val, &input.nnz, &input.n_rows, &input.n_cols);
 
-    row_ptr = COOtoCSR(I, J, val, nz, M);
+    printMatrixInCoo(input.I, input.J, input.val, input.nnz);
+    //printMatrixIntrinsic(input.I, input.J, input.val, input.nnz);
+
+    input.row_ptr = COOtoCSR(input.I, input.J, input.val, input.nnz, input.n_rows);
+
 
     // generate a random vector of size N (columns of the matrix)
     double max = 4.0, min = -4.0, range, div;
     range = max - min;
     div = RAND_MAX / range;
-    double *vec = malloc(N * sizeof(double));
-    for (i = 0; i < N; i++) {
+    double *vec = malloc(input.n_cols * sizeof(double));
+    int i;
+    for (i = 0; i < input.n_cols; i++) {
         vec[i] = min + (rand() / div);
     }
 
@@ -98,17 +112,15 @@ int main(int argc, char *argv[]) {
         limit = 1;
     else
         limit = 10;        
-    double *result = calloc(M, sizeof(double));
+    input.result = calloc(input.n_rows, sizeof(double));
     for(iterations = 0; iterations < limit; iterations++) {
         GET_TIME(start_time);
 
         #pragma omp parallel for schedule(runtime)
-        for(i = 0; i < M; i++) {
-            double sum = 0.0;
-            for(j = row_ptr[i]; j < row_ptr[i+1]; j++) {
-                sum += val[j] * vec[J[j]-1]; // -1 for 0-based indexing
+        for(i = 0; i < input.n_rows; i++) {
+            for(j = input.row_ptr[i]; j < input.row_ptr[i+1]; j++) {
+                input.result[i] += input.val[j] * vec[input.J[j]-1]; // -1 for 0-based indexing
             }
-            result[i] = sum;
         }
 
         GET_TIME(finish_time);
@@ -118,12 +130,12 @@ int main(int argc, char *argv[]) {
             printf("%f\n", elapsed_time);
     }
 
-    free(I);
-    free(J);
-    free(val);
-    free(row_ptr);
+    free(input.I);
+    free(input.J);
+    free(input.val);
+    free(input.row_ptr);
     free(vec);
-    free(result);
+    free(input.result);
 
     return 0;
 }
