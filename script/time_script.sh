@@ -1,9 +1,13 @@
 #!/bin/bash
 
 cd ..
+
+export OMP_PROC_BIND=close    # thread pinning su core adiacenti
+export OMP_PLACES=cores        # binding a core fisici
+export OMP_WAIT_POLICY=active  # evita context switching costoso
+
 data_dir_path="./data"
-time_simulation_results="results/time_results.csv"
-cache_simulation_results="results/cache_results.csv"
+time_simulation_results="results/time_results_EXPORT.csv"
 
 thread_options=(1 2 4 8 16 32 64)
 chunk_sizes_options=(1 10 100 1000 10000)

@@ -107,7 +107,7 @@ int main(int argc, char *argv[]) {
 
     // compute the matrix-vector product
     double start_time, finish_time, elapsed_time;
-    int j, iterations, limit;
+    int k, j, iterations, limit;
     if(perf_cold_start == 1 || perf_cold_start == 3)
         limit = 1;
     else
@@ -116,11 +116,13 @@ int main(int argc, char *argv[]) {
     for(iterations = 0; iterations < limit; iterations++) {
         GET_TIME(start_time);
 
-        #pragma omp parallel for schedule(runtime)
-        for(i = 0; i < input.n_rows; i++) {
-            for(j = input.row_ptr[i]; j < input.row_ptr[i+1]; j++) {
-                input.result[i] += input.val[j] * vec[input.J[j]-1]; // -1 for 0-based indexing
+        #pragma omp parallel for schedule(runtime) private(k, j)
+        for(k = 0; k < input.n_rows; k++) {
+            double sum = 0.0;
+            for(j = input.row_ptr[k]; j < input.row_ptr[k+1]; j++) {
+                sum += input.val[j] * vec[input.J[j]-1]; // -1 for 0-based indexing
             }
+            input.result[k] = sum;
         }
 
         GET_TIME(finish_time);
