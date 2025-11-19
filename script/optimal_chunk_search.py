@@ -23,7 +23,7 @@ width = 0.25
 all_matrices = df_90_perc["matrix_name"].unique()
 
 # Create the plots directory if it doesn't exist
-PLOTS_DIR = "plots/PRIV"
+PLOTS_DIR = "plots/opc"
 os.makedirs(PLOTS_DIR, exist_ok=True)
 
 print("\nGenerating Plots for all Matrices...\n")
