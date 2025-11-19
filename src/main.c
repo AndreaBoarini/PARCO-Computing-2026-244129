@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
     // read mtx file from matrix market format
     readMtx(argv[2], &input.I, &input.J, &input.val, &input.nnz, &input.n_rows, &input.n_cols);
 
-    printMatrixInCoo(input.I, input.J, input.val, input.nnz);
+    //printMatrixInCoo(input.I, input.J, input.val, input.nnz);
     //printMatrixIntrinsic(input.I, input.J, input.val, input.nnz);
 
     input.row_ptr = COOtoCSR(input.I, input.J, input.val, input.nnz, input.n_rows);
