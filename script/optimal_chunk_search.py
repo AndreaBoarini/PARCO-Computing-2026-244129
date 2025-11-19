@@ -3,8 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-# --- 1. DATA LOADING AND PREPROCESSING ---
-
 # Load data from the specified path
 df = pd.read_csv("results/time_results_PRIVATE.csv")
 
@@ -53,14 +51,11 @@ def compute_block_percentile90(group):
 
 
 # Apply the 90th percentile calculation for each combination
-# FIX 1: Removed include_groups=False which caused KeyError for 'matrix_name' in this setup.
 df_90_perc = df_sorted.groupby([
     "matrix_name", "compiler_option",
     "thread_option", "chunk_size_option",
     "scheduling_option"
 ], dropna=False, group_keys=False).apply(compute_block_percentile90).reset_index(drop=True)
-
-# --- 2. PLOTTING CONFIGURATION ---
 
 # Style parameters for the graph
 schedule_order = ["static", "dynamic", "guided"]
@@ -76,11 +71,8 @@ width = 0.25 # Bar width
 all_matrices = df_90_perc["matrix_name"].unique()
 
 # Create the plots directory if it doesn't exist
-PLOTS_DIR = "plots"
+PLOTS_DIR = "plots/PRIV"
 os.makedirs(PLOTS_DIR, exist_ok=True)
-
-
-# --- 3. GENERATE PLOTS FOR ALL MATRICES ---
 
 print("\n--- Generating Plots for all Matrices ---")
 
@@ -187,7 +179,7 @@ for matrix_name in all_matrices:
         
     plt.tight_layout(rect=[0.05, 0.0, 1, 0.95])
     
-    # --- SAVE PLOT INSTEAD OF SHOWING IT ---
+    # Save plot
     filename = f"{matrix_name}_OPC.png"
     filepath = os.path.join(PLOTS_DIR, filename)
     plt.savefig(filepath)
