@@ -1,8 +1,7 @@
 cd ..
 data_dir_path="./data"
-cache_simulation_results="results/cache_results.csv"
+cache_simulation_results="results/final_results_cache.csv"
 
-compiler_options=("-O0" "-O1" "-O2" "-O3")
 thread_options=(1 2 4 8 16 32 64)
 chunk_sizes_options=(1 10 100 1000 10000)
 scheduling_options=("static" "dynamic" "guided")

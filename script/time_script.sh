@@ -7,7 +7,7 @@ export OMP_PLACES=cores        # binding a core fisici
 export OMP_WAIT_POLICY=active  # evita context switching costoso
 
 data_dir_path="./data"
-time_simulation_results="results/time_results_EXPORT.csv"
+time_simulation_results="results/final_results_time.csv"
 
 thread_options=(1 2 4 8 16 32 64)
 chunk_sizes_options=(1 10 100 1000 10000)
