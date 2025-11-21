@@ -5,7 +5,7 @@ import os
 import preprocess
 
 # Load data from the specified path
-df = pd.read_csv("results/time_results_PRIVATE.csv")
+df = pd.read_csv("results/final_results_time.csv")
 
 # Get csv already preprocessed
 df_90_perc = preprocess.preprocess_csv(df)
@@ -26,7 +26,7 @@ all_matrices = df_90_perc["matrix_name"].unique()
 PLOTS_DIR = "plots/opc"
 os.makedirs(PLOTS_DIR, exist_ok=True)
 
-print("\nGenerating Plots for all Matrices...\n")
+print("\nGenerating Plots for all Matrices and Chunk Sizes...\n")
 
 for matrix_name in all_matrices:
     # Filter parallel data for the current matrix
@@ -46,28 +46,18 @@ for matrix_name in all_matrices:
         print(f"Warning: No parallel data found for matrix {matrix_name}. Skipping plot.")
         continue
 
-    # Determine grid layout (rows x cols)
-    n_chunks = len(chunk_sizes)
-    n_cols = 3 
-    n_rows = int(np.ceil(n_chunks / n_cols))
-
-    fig, axes = plt.subplots(n_rows, n_cols, 
-                             figsize=(4 * n_cols, 4 * n_rows), 
-                             sharey=False) 
-    
-    # Handle single subplot case
-    if n_chunks == 1:
-        axes = np.array([axes])
-    axes = axes.flatten()
+    # Create a subdirectory for the current matrix
+    matrix_plot_dir = os.path.join(PLOTS_DIR, matrix_name)
+    os.makedirs(matrix_plot_dir, exist_ok=True)
 
     # Calculate sequential time for the matrix (reference line)
     seq_data = df_90_perc[(df_90_perc["matrix_name"] == matrix_name) & 
                           (df_90_perc["scheduling_option"].isna())]
     seq_time = seq_data["p90_exec_time"].iloc[0] if not seq_data.empty else np.nan
 
-    # Iterate through each chunk size to create a subplot
-    for idx, chunk in enumerate(chunk_sizes):
-        ax = axes[idx]
+    # Iterate through each chunk size to create a separate plot
+    for chunk in chunk_sizes:
+        fig, ax = plt.subplots(figsize=(8, 5)) # Create a new figure and axis for each chunk
         chunk_data = parallel_data[parallel_data["chunk_size_option"] == chunk]
         
         axis_x = np.arange(len(threads_list))
@@ -107,35 +97,24 @@ for matrix_name in all_matrices:
                 label="Sequential Time"
             )
         
-        # Set X-axis labels and subplot title
+        # Set X-axis labels and plot title
         ax.set_xticks(axis_x)
         ax.set_xticklabels(threads_list)
         ax.set_xlabel("Threads")
-        ax.set_title(f"Chunk Size: {chunk}")
+        ax.set_ylabel("Execution time [ms]")
+        ax.set_title(f"Performance Analysis for Matrix: {matrix_name}, Chunk Size: {chunk}")
         ax.grid(axis="y", linestyle="--", alpha=0.5)
-
-        # Add Y-label only to subplots in the first column
-        if idx % n_cols == 0:
-            ax.set_ylabel("Execution time (90th percentile, ms)")
-
-    # Set overall title
-    fig.suptitle(f"Performance Analysis for Matrix: {matrix_name}", fontsize=14)
-    
-    # Add legend
-    handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, title="Scheduling", loc='upper right', bbox_to_anchor=(0.98, 0.95))
-
-    # Hide empty subplots
-    for i in range(n_chunks, n_rows * n_cols):
-        fig.delaxes(axes[i])
         
-    plt.tight_layout(rect=[0.05, 0.0, 1, 0.95])
-    
-    # Save plot
-    filename = f"{matrix_name}_OPC.png"
-    filepath = os.path.join(PLOTS_DIR, filename)
-    plt.savefig(filepath)
-    print(f"Saved plot to: {filepath}")
-    plt.close(fig) # Close the figure to free up memory
+        # Add legend
+        ax.legend(title="Scheduling")
 
-print("\nAll matrix plots generated and saved to the 'plots' directory.")
+        plt.tight_layout()
+        
+        # Save plot in the matrix-specific subdirectory
+        filename = f"{matrix_name}_OPC_chunk{chunk}.png"
+        filepath = os.path.join(matrix_plot_dir, filename)
+        plt.savefig(filepath)
+        print(f"Saved plot to: {filepath}")
+        plt.close(fig) # Close the figure to free up memory
+
+print("\nAll matrix and chunk size plots generated and saved to their respective subdirectories.")
