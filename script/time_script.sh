@@ -2,9 +2,9 @@
 
 cd ..
 
-export OMP_PROC_BIND=close    # thread pinning su core adiacenti
-export OMP_PLACES=cores        # binding a core fisici
-export OMP_WAIT_POLICY=active  # evita context switching costoso
+export OMP_PROC_BIND=close
+export OMP_PLACES=cores        
+export OMP_WAIT_POLICY=active
 
 data_dir_path="./data"
 time_simulation_results="results/final_results_time.csv"
