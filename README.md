@@ -127,12 +127,23 @@ Any run of the project will cause an **overwriting** both on the `.csv` and `.pn
 # Job submission
 The Job submission is entrusted to the `scripts/run_job.pbs` script. It will essentially, instantiate a job with the required specifications for the project to run and will execute
 the simulations script. The `.pbs` script will take care to load the modules cited above automatically.
+
+> [!NOTE]
+> The Job script is encharged of loading the module `gcc91` and `perf` by itself.
+> There might be a chance that after `gcc91` is loaded command `gcc` might not point directly to `GCC9.1.0`.
+> To overcome this issue please follow this routine:
+> ```
+> nano ~/bash.rc
+> module load gcc91
+> alias gcc=gcc-9.1.0
+> source ~/bash.rc
+> ```
+> Now `gcc --version` should show `gcc-9.1.0`, which means everything is set up and your good to go.
+> Note that this step has to be done only once for every different profile that starts the job.
+
 Once in the root directory of the project:
 ```
 cd script/
 qsub run_job.pbs
 ```
 This command will call both `final_time_results.sh` and `cache_final_results.sh` to start the simulations.
-
-> [!NOTE]
-> The Job script is encharged of loading the module `gcc-9.1.0` and `perf` by itself.
