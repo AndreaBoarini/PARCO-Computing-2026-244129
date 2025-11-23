@@ -5,7 +5,7 @@ ssh username@hpc.unitn.it
 git clone https://github.com/AndreaBoarini/PARCO-Computing-2026-244129.git
 ```
 Download from the web the matrices that will be used for the measurements.
-The `retrieve_inputs.sh` script automatically downloads the matrix samples from https://sparse.tamu.edu used for the evaluations discussed in the `report.pdf`.
+The `retrieve_inputs.sh` script automatically downloads the matrix samples from https://sparse.tamu.edu used for the evaluations discussed in the `Boarini-244129-D1.pdf`.
 Before executing it, it has to be made executable. The resulting inputs will be found in the `data/` direcorty, which is not present when firstly cloned.
 ```
 cd PARCO-Computing-2026-244129/scripts
