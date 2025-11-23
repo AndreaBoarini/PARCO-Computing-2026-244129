@@ -17,6 +17,7 @@ chmod +x retrieve_inputs.sh
 > - It consists of a `.mtx` file
 > - It is placed in the `/data` direcotry (the source program will fetch the data from there)
 > - It is *NOT* a symmetric matrix (these types formatted differently and the MMIO library by not implementing any kind of function that satisfy this format won't read the matrix correctly)
+> - There will be compatibility issues for the plotting
 
 # General repository infos
 The repository is now structured as follows:
