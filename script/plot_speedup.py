@@ -1,12 +1,11 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 import preprocess
+import os
 
-# --- 1. CONFIGURATION ---
-
-csv_filepath = "results/time_results_PRIVATE.csv"
+# Modificato il percorso del file per utilizzare il file caricato
+csv_filepath = "results/final_results_time.csv" 
 plots_dir = "plots/speedup"
 
 chunk_size_map = {
@@ -24,8 +23,6 @@ colors_schedule = {
     "dynamic": "#2ca02c",
     "guided": "#ff7f0e"
 }
-
-# --- 2. DATA LOADING AND PREPROCESSING ---
 
 print("Loading and preprocessing data...")
 df_raw = pd.read_csv(csv_filepath)
@@ -65,7 +62,7 @@ for matrix_name, optimal_chunk_size in chunk_size_map.items():
         print(f"Warning: Sequential time for {matrix_name} is invalid ({sequential_time}). Cannot calculate speedup. Skipping.")
         continue
 
-    threads = sorted(matrix_chunk_data["thread_option"].unique())
+    threads = sorted([int(t) for t in matrix_chunk_data["thread_option"].dropna().unique()])
 
     plt.figure(figsize=(10, 6))
 
@@ -96,29 +93,51 @@ for matrix_name, optimal_chunk_size in chunk_size_map.items():
         plt.plot(
             threads,
             speedups,
-            label=f"Scheduling: {schedule_type}",
+            label=f"{schedule_type}",
             color=colors_schedule.get(schedule_type, 'gray'),
             marker='o',
             linestyle='-'
         )
 
-    plt.axhline(y=1, color='red', linestyle='--', label='sequential)')
+    # --- AGGIUNTA SPEEDUP IDEALE ---
+    threads_for_ideal = sorted(list(set([1] + threads))) 
+    plt.plot(
+        threads_for_ideal,
+        threads_for_ideal,
+        color='gray', 
+        linestyle='-.', 
+        label='Ideal Speedup'
+    )
+    
+    plt.axhline(y=1, color='red', linestyle='--', label='Sequential Time (Speedup = 1)')
     
     # --- Add max speedup tick and value ---
     if all_speedups_for_matrix:
         max_speedup_value = np.max(all_speedups_for_matrix)
         
-        # Get current y-ticks and labels
+        # Dilatazione Asse Y (nuova logica)
+        max_y_limit = max_speedup_value * 1.6 # Margine del 25%
+        plt.ylim(0, max_y_limit)
+
+        # Ottieni i tick e le etichette correnti dell'asse y
         yticks, ylabels = plt.yticks()
         
-        # Add the max speedup value to yticks if it's not already very close to an existing one
+        # Aggiungi il valore massimo di speedup e rendilo GRASSETTO (nuova logica)
         if not any(np.isclose(max_speedup_value, ytick, atol=0.01) for ytick in yticks):
             new_yticks = sorted(list(yticks) + [max_speedup_value])
-            plt.yticks(new_yticks, [f'{y:.2f}' for y in new_yticks])
+            new_ylabels = [f'{y:.2f}' for y in new_yticks] 
+            
+            # Bolding Logic (utilizzando LaTeX)
+            max_label = f'{max_speedup_value:.2f}'
+            new_ylabels_bolded = [
+                r'$\mathbf{' + label + '}$' if label == max_label else label
+                for label in new_ylabels
+            ]
+            
+            plt.yticks(new_yticks, new_ylabels_bolded) # Applica i tick boldati
         
-        # Draw a horizontal line at the max speedup point (optional, but helps visualize)
-        plt.axhline(y=max_speedup_value, color='black', linestyle=':', linewidth=0.8, 
-                    label=f'Max Speedup: {max_speedup_value:.2f}')
+        # Draw a horizontal line at the max speedup point
+        plt.axhline(y=max_speedup_value, color='black', linestyle=':', linewidth=0.8)
     
     plt.xlabel("Number of Threads")
     plt.ylabel("Speedup")
@@ -126,7 +145,7 @@ for matrix_name, optimal_chunk_size in chunk_size_map.items():
     plt.title(f"{matrix_name.replace('.mtx', '')} - Chunksize: {optimal_chunk_size}")
     plt.xticks(threads)
     plt.grid(True, linestyle='--', alpha=0.6)
-    plt.legend(title="Legend")
+    plt.legend(title="Legend", loc='lower right')
     plt.tight_layout()
 
     filename = f"{matrix_name}_speedup.png"
