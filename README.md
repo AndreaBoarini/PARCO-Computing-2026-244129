@@ -58,12 +58,13 @@ PARCO-Computing-2026-244129/
 │   └── plot_n.png
 └── report.pdf 
 ```
-The execution of all the measurements is made possible by `run_simulation.sh` which executes,
-for every single combination of matrix as input, compiler option, number of thread among the specified set,
+The execution of all the measurements is made possible by `run_job.pbs` which executes,
+for every single combination of matrix as input, number of thread among the specified set,
 scheduling option and chunk size in the specified set, the computation of the elapsed time for the SpMV multiplication.
-The script will also take care of the cache adresses' evaluations for each execution.
+The script will also take care of the cache adresses' evaluations for each execution, it essentially calls both `cache_script.sh` and `time_script.sh`.
 
-The results both of the elapsed times and cache misses info are then stored separately in `time_results.csv` and `cache_results.csv`
+The results both of the elapsed times and cache misses info are then stored separately in `final_time_results.csv` and `final_cache_results.csv`.
+The file `time_results_PRIVATE_NOEXP.csv` contains the time results for the execution made **without thread pinning**.
 
 > [!Warning]
 > The simulation script has been extensively tested in the Unitn cluster's environment. In order to reproduce correctly the
