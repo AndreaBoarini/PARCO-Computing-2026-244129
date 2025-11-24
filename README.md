@@ -96,7 +96,7 @@ Please, note also that the output for the individual run is not stored anywhere 
 Alternatively, to evaluate cache misses in a specific condition, firstly compile the project in as preferred (check above) and then run `perf stat`
 command on the executable. In the scope of this project the elements taken into accounts where: L1 loads, L1 loads misses, LLC loads, LLC misses:
 ```
-perf stat -e L1-dcache-loads,L1-dcache-load-misses,LLC-loads,LLC-misses ./main <perf-cold-start> <matrix-input>
+perf stat -e L1-dcache-loads,L1-dcache-load-misses,LLC-loads,LLC-misses ./main [sequential or parallel configuration in the format specified above]
 ```
 The `perf-cold-start` can either be `W` or `C` whether if it's necessary to execuite the parallel loop 10 times or just once, this is made with the intention to control which type of
 simulation execute: cold-start or warm-up steady-state evaluation. The use of `W` will print the 10 results while `C` won't print anything.
