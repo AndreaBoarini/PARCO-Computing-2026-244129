@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-# --- FUNZIONI DI PREPROCESSING INTEGRATE ---
 def compute_block_percentile90(group):
     # Computes the 90th percentile of execution time in blocks of 10 measurements.
     results = []
@@ -24,7 +23,6 @@ def compute_block_percentile90(group):
     return pd.DataFrame(results)
 
 def preprocess_csv(df):
-    """Esegue la pre-elaborazione e calcola il 90° percentile per ogni blocco/configurazione."""
     
     df = df.replace({"Nan": np.nan, "NaN": np.nan})
 
@@ -52,7 +50,6 @@ def preprocess_csv(df):
 
     return df_90_perc
 
-# --- 1. CONFIGURATION (AGGIORNATA) ---
 
 csv_filepath = "results/final_results_time.csv" 
 plots_dir = "plots"
@@ -60,29 +57,26 @@ plots_dir = "plots"
 MATRIX_CONFIGS = {
     "bayer03.mtx": {"chunk_size": 1000, "label": "bayer03 (chunk: 1000)"},
     "G3_circuit.mtx": {"chunk_size": 10000, "label": "G3_circuit (chunk: 10000)"},
-    "rajat31.mtx": {"chunk_size": 1000, "label": "rajat31 (chunk: 1000)"}, # <--- AGGIUNTA RAJAT31
+    "rajat31.mtx": {"chunk_size": 1000, "label": "rajat31 (chunk: 1000)"}
 }
 
 BASE_COLOR_G3 = "#4490c6"
 BASE_COLOR_B3 = "#e73d3d"
-BASE_COLOR_R31 = "#ffb224" # <--- COLORE GIALLO PER RAJAT31
+BASE_COLOR_R31 = "#ffb224"
 
-SCHEDULE_ORDER = ["static", "dynamic", "guided"] # Usato per l'iterazione, non più per gli shade
+SCHEDULE_ORDER = ["static", "dynamic", "guided"]
 
 THEORETICAL_COLOR = "black"
-
-# --- 2. DATA LOADING AND PREPROCESSING ---
 
 df_raw = pd.read_csv(csv_filepath)
 df_90_perc = preprocess_csv(df_raw)
 
 os.makedirs(plots_dir, exist_ok=True)
 
-# --- 3. SPEEDUP CALCULATION AND PLOTTING (MODIFICATO) ---
 
 plot_data = {}
 all_threads = []
-all_max_speedups = {} # Per memorizzare lo speedup massimo raggiunto da ciascuna matrice
+all_max_speedups = {}
 
 for matrix_name, config in MATRIX_CONFIGS.items():
     optimal_chunk_size = config["chunk_size"]
@@ -92,7 +86,6 @@ for matrix_name, config in MATRIX_CONFIGS.items():
         (df_90_perc["chunk_size_option"].astype('Int64') == optimal_chunk_size)
     ].copy()
 
-    # Tempo sequenziale (scheduling_option è NaN)
     sequential_time_df = df_90_perc[
         (df_90_perc["matrix_name"] == matrix_name) &
         (df_90_perc["scheduling_option"].isna())
@@ -113,7 +106,6 @@ for matrix_name, config in MATRIX_CONFIGS.items():
     best_schedule_type = None
     best_schedule_speedups = {}
     
-    # 3.1 Calcola lo Speedup per Tutte le Schedule
     all_schedule_speedups = {}
     
     for schedule_type in SCHEDULE_ORDER:
@@ -131,7 +123,6 @@ for matrix_name, config in MATRIX_CONFIGS.items():
                     speedup = sequential_time / parallel_time
                     speedups[t] = speedup
                     
-                    # 3.2 Trova lo speedup massimo e la schedule corrispondente
                     if speedup > best_speedup:
                         best_speedup = speedup
                         best_schedule_type = schedule_type
@@ -142,20 +133,18 @@ for matrix_name, config in MATRIX_CONFIGS.items():
                 speedups[t] = np.nan
         
         all_schedule_speedups[schedule_type] = speedups
-        
-    # 3.3 Conserva solo la migliore schedule e il massimo speedup
+
     if best_schedule_type:
         best_schedule_speedups = all_schedule_speedups[best_schedule_type]
         
         plot_data[matrix_name] = {
-            "label": f"{config['label']} ({best_schedule_type})", # Etichetta aggiornata
+            "label": f"{config['label']} ({best_schedule_type})",
             "data": best_schedule_speedups,
             "threads": threads,
             "best_schedule": best_schedule_type
         }
         all_max_speedups[matrix_name] = best_speedup
 
-# 4. PLOTTING (MODIFICATO)
 final_threads = sorted([int(t) for t in list(set(all_threads))])
 
 if not plot_data or not final_threads:
@@ -176,13 +165,12 @@ else:
     color_map = {
         "bayer03.mtx": BASE_COLOR_B3,
         "G3_circuit.mtx": BASE_COLOR_G3,
-        "rajat31.mtx": BASE_COLOR_R31 # <--- AGGIUNTA MAPPA COLORE
+        "rajat31.mtx": BASE_COLOR_R31
     }
 
     legend_handles = []
     all_speedups_overall = []
     
-    # --- Tracciamento SOLO della Migliore Strong Scaling ---
     for matrix_name, data in plot_data.items():
         base_color = color_map[matrix_name]
         
@@ -197,14 +185,13 @@ else:
             speedups_to_plot,
             label=data['label'],
             color=base_color,
-            alpha=1.0, # Alpha fisso dato che c'è solo una linea per matrice
+            alpha=1.0,
             marker='o',
             linestyle='-',
             linewidth=2.5
         )
         legend_handles.append(line)
 
-    # 2. Aggiungi Speedup Teorico e Sequenziale
     theoretical_x = sorted(list(set([1] + final_threads)))
     theoretical_y = theoretical_x
 
@@ -221,18 +208,15 @@ else:
     sequential_handle = plt.axhline(y=1, color='lime', linestyle='--', label='Sequential speedup', linewidth=2.7)
     legend_handles.append(sequential_handle)
     
-    # --- Gestione Asse Y (Dilatato e Bolding) ---
     max_speedup_achieved_overall = np.nanmax(all_speedups_overall) if all_speedups_overall else 1
     max_y_limit = max_speedup_achieved_overall * 1.25 
     plt.ylim(0, max_y_limit)
     
-    # Tutti gli speedup massimi da evidenziare
     max_speedup_to_bold = list(all_max_speedups.values())
     
     if max_speedup_achieved_overall > 0:
         yticks, _ = plt.yticks()
         
-        # Aggiungi gli speedup massimi di ogni matrice se non già presenti
         new_yticks_set = set(yticks)
         for s in max_speedup_to_bold:
              if not any(np.isclose(s, ytick, atol=0.01) for ytick in yticks):
@@ -241,7 +225,6 @@ else:
         new_yticks = sorted(list(new_yticks_set))
         new_ylabels = [f'{y:.2f}' for y in new_yticks] 
         
-        # Bolding per i valori massimi di speedup di ciascuna matrice
         new_ylabels_bolded = []
         for y, label in zip(new_yticks, new_ylabels):
             is_max_speedup = any(np.isclose(y, max_val, atol=0.01) for max_val in max_speedup_to_bold)
@@ -253,21 +236,18 @@ else:
             
         plt.yticks(new_yticks, new_ylabels_bolded)
     
-    # --- GESTIONE LEGGENDA: SEMPLIFICATA ---
     
     matrix_labels = [data['label'] for data in plot_data.values()]
     other_labels = ["Theoretical Speedup"]
 
     final_labels = matrix_labels + other_labels
     
-    # Plot della singola legenda
     plt.legend(legend_handles, final_labels, 
                title="Legend Summary", 
                loc='upper right', 
                framealpha=0.9,
                ncol=1) 
     
-    # --- Titoli e Griglia ---
     plt.xlabel("Number of Threads")
     plt.ylabel("Speedup")
     

@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import preprocess
 import os
 
-# Modificato il percorso del file per utilizzare il file caricato
 csv_filepath = "results/final_results_time.csv" 
 plots_dir = "plots/speedup"
 
@@ -31,7 +30,6 @@ print("Data preprocessing complete.")
 
 os.makedirs(plots_dir, exist_ok=True)
 
-# --- 3. SPEEDUP CALCULATION AND PLOTTING ---
 
 print("\n--- Generating Speedup Plots ---")
 
@@ -66,7 +64,7 @@ for matrix_name, optimal_chunk_size in chunk_size_map.items():
 
     plt.figure(figsize=(10, 6))
 
-    all_speedups_for_matrix = [] # Collect all speedups to find the overall max
+    all_speedups_for_matrix = []
 
     for schedule_type in schedule_order:
         schedule_data = matrix_chunk_data[
@@ -87,7 +85,6 @@ for matrix_name, optimal_chunk_size in chunk_size_map.items():
             else:
                 speedups.append(np.nan)
         
-        # Add current schedule's speedups to the overall list for max calculation
         all_speedups_for_matrix.extend([s for s in speedups if pd.notna(s)])
 
         plt.plot(
@@ -99,7 +96,6 @@ for matrix_name, optimal_chunk_size in chunk_size_map.items():
             linestyle='-'
         )
 
-    # --- AGGIUNTA SPEEDUP IDEALE ---
     threads_for_ideal = sorted(list(set([1] + threads))) 
     plt.plot(
         threads_for_ideal,
@@ -111,37 +107,30 @@ for matrix_name, optimal_chunk_size in chunk_size_map.items():
     
     plt.axhline(y=1, color='red', linestyle='--', label='Sequential Time (Speedup = 1)')
     
-    # --- Add max speedup tick and value ---
     if all_speedups_for_matrix:
         max_speedup_value = np.max(all_speedups_for_matrix)
         
-        # Dilatazione Asse Y (nuova logica)
-        max_y_limit = max_speedup_value * 1.6 # Margine del 25%
+        max_y_limit = max_speedup_value * 1.6
         plt.ylim(0, max_y_limit)
 
-        # Ottieni i tick e le etichette correnti dell'asse y
         yticks, ylabels = plt.yticks()
         
-        # Aggiungi il valore massimo di speedup e rendilo GRASSETTO (nuova logica)
         if not any(np.isclose(max_speedup_value, ytick, atol=0.01) for ytick in yticks):
             new_yticks = sorted(list(yticks) + [max_speedup_value])
             new_ylabels = [f'{y:.2f}' for y in new_yticks] 
             
-            # Bolding Logic (utilizzando LaTeX)
             max_label = f'{max_speedup_value:.2f}'
             new_ylabels_bolded = [
                 r'$\mathbf{' + label + '}$' if label == max_label else label
                 for label in new_ylabels
             ]
             
-            plt.yticks(new_yticks, new_ylabels_bolded) # Applica i tick boldati
+            plt.yticks(new_yticks, new_ylabels_bolded)
         
-        # Draw a horizontal line at the max speedup point
         plt.axhline(y=max_speedup_value, color='black', linestyle=':', linewidth=0.8)
     
     plt.xlabel("Number of Threads")
     plt.ylabel("Speedup")
-    # --- Matrix name in bold ---
     plt.title(f"{matrix_name.replace('.mtx', '')} - Chunksize: {optimal_chunk_size}")
     plt.xticks(threads)
     plt.grid(True, linestyle='--', alpha=0.6)
