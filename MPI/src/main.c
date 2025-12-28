@@ -2,6 +2,12 @@
 #include <stdlib.h>
 #include <mpi.h>
 
+typedef struct {      
+    double *val;    
+    int *row_idx;
+    int *col_idx;
+} GlobalCOO;
+
 int main(int argc, char* argv[]) {
 
     MPI_Init(&argc, &argv);
@@ -20,12 +26,11 @@ int main(int argc, char* argv[]) {
 
     if(rank == 0) {
         const char* matrix_file = argv[1];
-        int M, N, nz;
-        double *val;
-        int *I, *J;
+        GlobalCOO *mtx = NULL;
+        int N, M, nz;
 
         // Read the matrix in COO format
-        if(mm_read_unsymmetric_sparse(matrix_file, &M, &N, &nz, &val, &I, &J) != 0) {
+        if(mm_read_unsymmetric_sparse(matrix_file, &M, &N, &nz, &mtx->val, &mtx->row_idx, &mtx->col_idx) != 0) {
             fprintf(stderr, "Error reading matrix file %s\n", matrix_file);
             MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
         }
@@ -33,10 +38,14 @@ int main(int argc, char* argv[]) {
         printf("Matrix read successfully: %d x %d with %d non-zeros\n", M, N, nz);
 
         // Free allocated memory
-        free(val);
-        free(I);
-        free(J);
+        free(mtx->val);
+        free(mtx->row_idx);
+        free(mtx->col_idx);
+        free(mtx);
     }
+
+    
+
     MPI_Finalize();
     return EXIT_SUCCESS;
 }
