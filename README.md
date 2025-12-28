@@ -58,12 +58,13 @@ PARCO-Computing-2026-244129/
 │   └── plot_n.png
 └── report.pdf 
 ```
-The execution of all the measurements is made possible by `run_simulation.sh` which executes,
-for every single combination of matrix as input, compiler option, number of thread among the specified set,
+The execution of all the measurements is made possible by `run_job.pbs` which executes,
+for every single combination of matrix as input, number of thread among the specified set,
 scheduling option and chunk size in the specified set, the computation of the elapsed time for the SpMV multiplication.
-The script will also take care of the cache adresses' evaluations for each execution.
+The script will also take care of the cache adresses' evaluations for each execution, it essentially calls both `cache_script.sh` and `time_script.sh`.
 
-The results both of the elapsed times and cache misses info are then stored separately in `time_results.csv` and `cache_results.csv`
+The results both of the elapsed times and cache misses info are then stored separately in `final_time_results.csv` and `final_cache_results.csv`.
+The file `time_results_PRIVATE_NOEXP.csv` contains the time results for the execution made **without thread pinning**.
 
 > [!Warning]
 > The simulation script has been extensively tested in the Unitn cluster's environment. In order to reproduce correctly the
@@ -78,17 +79,16 @@ To run the algorithm **sequentially** use the following command in the root dire
 gcc -g -Iinclude -<compiler-optimization> src/main.c src/csr.c src/mmio.c src/print.c -o main
 ```
 ```
-./main <perf_cold_start> data/<matrix-input>
+./main W data/<matrix-input>
 ```
 Or to operate **parallely**:
 ```
 gcc -g -Iinclude -fopenmp -<compiler-optimization> src/main.c src/csr.c src/mmio.c src/print.c -o main
 ```
 ```
-./main <perf-cold-start> data/<matrix-input> <thread-number> <scheduling-option> <chunk-size>
+./main W data/<matrix-input> <thread-number> <scheduling-option> <chunk-size>
 ```
-The `perf-cold-start` can either be `W` or `C` whether if it's necessary to execuite the parallel loop 10 times (with 10 outputs) or just once
-(with a single output)
+Using `W` it's necessary in this case, it will be clearer later.
 For unaccepted directive formats (e.g. too many/few arguments) the program will automatically detect the error and abort the process.
 The result of the computation is expressed in ms (microseconds).
 Please, note also that the output for the individual run is not stored anywhere but is meant for testing only.
@@ -96,9 +96,10 @@ Please, note also that the output for the individual run is not stored anywhere 
 Alternatively, to evaluate cache misses in a specific condition, firstly compile the project in as preferred (check above) and then run `perf stat`
 command on the executable. In the scope of this project the elements taken into accounts where: L1 loads, L1 loads misses, LLC loads, LLC misses:
 ```
-perf stat -e L1-dcache-loads,L1-dcache-load-misses,LLC-loads,LLC-misses ./main <matrix-input>
+perf stat -e L1-dcache-loads,L1-dcache-load-misses,LLC-loads,LLC-misses ./main [sequential or parallel configuration in the format specified above]
 ```
-
+The `perf-cold-start` can either be `W` or `C` whether if it's necessary to execuite the parallel loop 10 times or just once, this is made with the intention to control which type of
+simulation execute: cold-start or warm-up steady-state evaluation. The use of `W` will print the 10 results while `C` won't print anything.
 > [!NOTE]
 > In the project `include/` directory can be found useful print functions that can be called in the source file (`src/main.c`) with the aim to
 > print additional informations regarding the execution of the algorithm (e.g. display th result vector, display the input matrix in CSR format, etc...)
