@@ -1,0 +1,17 @@
+#!/bin/bash
+
+#PBS -N mpi_main
+#PBS -j oe
+#PBS -o run_pbs.out
+#PBS -q short_cpuQ
+#PBS -l select=1:ncpus=4:mpiprocs=4
+#PBS -l walltime=01:00:00
+
+module load mpich-3.2.1--gcc-9.1.0
+
+cd MPI/
+
+mpicc -O3 -Iinclude src/main.c src/mmio.c -o main
+mpirun -np 4 ./main ./arc130.mtx
+
+exit 0
