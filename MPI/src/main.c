@@ -95,11 +95,14 @@ int main(int argc, char* argv[]) {
         free(position);
     }
 
-    // each rank receives its portion of the matrix
+    // each rank receives the number of its nnz
+    LocalCOO *local_mtx = malloc(sizeof(LocalCOO));
+    local_mtx->local_nz = 0;
+    MPI_Scatter(send_counts, 1, MPI_INT, &local_mtx->local_nz, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     printf("Hello from rank %d / %d\n", rank, size);
     printf("Broadcast worked fine!: \n M = %d, N = %d, nz = %d\n", M, N, nz);
-    printf("\n");
+    printf("My non-zeros are: %d\n", local_mtx->local_nz);
 
     MPI_Finalize();
     return EXIT_SUCCESS;
