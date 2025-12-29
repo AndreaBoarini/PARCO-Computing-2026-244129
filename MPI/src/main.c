@@ -3,6 +3,13 @@
 #include <mpi.h>
 #include "mmio.h"
 
+typedef struct {
+    double *val;    
+    int *local_row_idx;
+    int *local_col_idx;
+    int local_nz;
+} LocalCOO;
+
 typedef struct {      
     double *val;    
     int *row_idx;
@@ -25,10 +32,17 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
+    int N, M, nz;
+    int *send_counts = NULL;
+    int *displs = NULL;
+    int *send_rows = NULL, *send_cols = NULL;
+    double *send_vals = NULL;
+    GlobalCOO *mtx = NULL;
+
     if(rank == 0) {
         const char* matrix_file = argv[1];
-        GlobalCOO *mtx = malloc(sizeof(GlobalCOO));
-        int N, M, nz;
+        // only rank 0 reads the matrix
+        mtx = malloc(sizeof(GlobalCOO));
 
         // Read the matrix in COO format
         if(mm_read_unsymmetric_sparse(matrix_file, &M, &N, &nz, &mtx->val, &mtx->row_idx, &mtx->col_idx) != 0) {
@@ -37,15 +51,55 @@ int main(int argc, char* argv[]) {
         }
 
         printf("Matrix read successfully: %d x %d with %d non-zeros\n", M, N, nz);
-
-        // Free allocated memory
-        free(mtx->val);
-        free(mtx->row_idx);
-        free(mtx->col_idx);
-        free(mtx);
     }
 
+    // broadcast matrix dimensions to all processes
+    MPI_Bcast(&M, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&N, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&nz, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
+    if(rank == 0) {
+        // prepare data for scattering
+        send_counts = calloc(size, sizeof(int));
+        displs = calloc(size, sizeof(int));
+
+        // count the nnz per rank (ownership by row)
+        int i, dest;
+        for(i = 0; i < nz; i++) {
+            dest = mtx->row_idx[i] % size;
+            send_counts[dest]++;
+        }
+
+        // calculate displacements
+        displs[0] = 0;
+        for(i = 1; i < size; i++) {
+            displs[i] = displs[i-1] + send_counts[i-1];
+        }
+
+        // prepare send buffers
+        send_rows = malloc(nz * sizeof(int));
+        send_cols = malloc(nz * sizeof(int));
+        send_vals = malloc(nz * sizeof(double));
+
+        int *position = malloc(size * sizeof(int));
+        for(i = 0; i < size; i++) {
+            position[i] = displs[i];
+        }
+        for(i = 0; i < nz; i++) {
+            dest = mtx->row_idx[i] % size;
+            int pos = position[dest]++;
+            send_rows[pos] = mtx->row_idx[i];
+            send_cols[pos] = mtx->col_idx[i];
+            send_vals[pos] = mtx->val[i];
+        }
+        free(position);
+    }
+
+    // each rank receives its portion of the matrix
+
+    printf("Hello from rank %d / %d\n", rank, size);
+    printf("Broadcast worked fine!: \n M = %d, N = %d, nz = %d\n", M, N, nz);
+    printf("\n");
 
     MPI_Finalize();
     return EXIT_SUCCESS;
