@@ -100,9 +100,35 @@ int main(int argc, char* argv[]) {
     local_mtx->local_nz = 0;
     MPI_Scatter(send_counts, 1, MPI_INT, &local_mtx->local_nz, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
+    // allocate local arrays
+    local_mtx->local_row_idx = malloc(local_mtx->local_nz * sizeof(int));
+    local_mtx->local_col_idx = malloc(local_mtx->local_nz * sizeof(int));
+    local_mtx->val = malloc(local_mtx->local_nz * sizeof(double));
+
+    // tuple distribution
+    // distribute row indices
+    MPI_Scatterv(send_rows, send_counts, displs, MPI_INT,
+                 local_mtx->local_row_idx, local_mtx->local_nz, MPI_INT,
+                 0, MPI_COMM_WORLD);
+    // distribute column indices
+    MPI_Scatterv(send_cols, send_counts, displs, MPI_INT,
+                 local_mtx->local_col_idx, local_mtx->local_nz, MPI_INT,
+                 0, MPI_COMM_WORLD);
+    // distribute values
+    MPI_Scatterv(send_vals, send_counts, displs, MPI_DOUBLE,
+                 local_mtx->val, local_mtx->local_nz, MPI_DOUBLE,
+                 0, MPI_COMM_WORLD);
+
     printf("Hello from rank %d / %d\n", rank, size);
-    printf("Broadcast worked fine!: \n M = %d, N = %d, nz = %d\n", M, N, nz);
-    printf("My non-zeros are: %d\n", local_mtx->local_nz);
+    // printf("Broadcast worked fine!: \n M = %d, N = %d, nz = %d\n", M, N, nz);
+    // printf("My non-zeros are: %d\n", local_mtx->local_nz);
+
+    // printf("Hi!, I'm rank %d of %d.\n", rank, size);
+    // printf("The arrays I stored are:\n");
+    for(int i = 0; i < local_mtx->local_nz; i++) {
+        printf("%f ", local_mtx->val[i]);
+    }
+    printf("\n");
 
     MPI_Finalize();
     return EXIT_SUCCESS;
