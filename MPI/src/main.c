@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <mpi.h>
+#include "mmio.h"
 
 typedef struct {      
     double *val;    
@@ -26,7 +27,7 @@ int main(int argc, char* argv[]) {
 
     if(rank == 0) {
         const char* matrix_file = argv[1];
-        GlobalCOO *mtx = NULL;
+        GlobalCOO *mtx = malloc(sizeof(GlobalCOO));
         int N, M, nz;
 
         // Read the matrix in COO format
@@ -44,7 +45,7 @@ int main(int argc, char* argv[]) {
         free(mtx);
     }
 
-    
+
 
     MPI_Finalize();
     return EXIT_SUCCESS;
