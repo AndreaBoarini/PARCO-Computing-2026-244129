@@ -12,6 +12,6 @@ module load mpich-3.2.1--gcc-9.1.0
 cd MPI/
 
 mpicc -O3 -Iinclude src/main.c src/mmio.c -o main
-mpirun -np 4 ./main ./arc130.mtx
+mpirun -np 4 ./main ./cage3.mtx
 
 exit 0
