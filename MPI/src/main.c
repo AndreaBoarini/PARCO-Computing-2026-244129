@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <mpi.h>
 #include "mmio.h"
+#include "csr.h"
 
 typedef struct {
     double *val;    
@@ -119,16 +120,56 @@ int main(int argc, char* argv[]) {
                  local_mtx->val, local_mtx->local_nz, MPI_DOUBLE,
                  0, MPI_COMM_WORLD);
 
-    printf("Hello from rank %d / %d\n", rank, size);
-    // printf("Broadcast worked fine!: \n M = %d, N = %d, nz = %d\n", M, N, nz);
-    // printf("My non-zeros are: %d\n", local_mtx->local_nz);
 
-    // printf("Hi!, I'm rank %d of %d.\n", rank, size);
-    // printf("The arrays I stored are:\n");
+    // check print
+    /*
     for(int i = 0; i < local_mtx->local_nz; i++) {
-        printf("%f ", local_mtx->val[i]);
+        printf("[%d](%d, %d, %f) ", rank, local_mtx->local_row_idx[i], local_mtx->local_col_idx[i], local_mtx->val[i]);
     }
     printf("\n");
+    */
+
+    // mapping from global to local row indices
+    // the local rows are 'packed' in a remapped matrix
+    int max_row = -1;
+    int j;
+    for(j = 0; j < local_mtx->local_nz; j++) {
+        int g = local_mtx->local_row_idx[j];
+        if (g % size != rank) {
+            fprintf(stderr, "[rank %d] ERROR: global row out of range: %d (M=%d)\n", rank, g, M);
+            MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+        }
+        if (g < 0 || g >= M) {
+            fprintf(stderr, "[rank %d] ERROR: row %d belongs to %d\n", rank, g, g % size);
+            MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+        }
+        int aux = g / size;
+        local_mtx->local_row_idx[j] = aux;  
+        if(aux > max_row) {
+            max_row = aux;
+        }
+    }
+
+    int N_local = 0;
+    for (int g = rank; g < M; g += size) N_local++;
+
+    for (int j = 0; j < local_mtx->local_nz; j++) {
+    int lr = local_mtx->local_row_idx[j];
+    if (lr < 0 || lr >= N_local) {
+            fprintf(stderr, "[rank %d] ERROR: local row out of range: %d (N_local=%d)\n",
+                    rank, lr, N_local);
+            MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+        }
+    }
+
+    printf("[rank:%d, N_local:%d, local_nz:%d]\n", rank, N_local, local_mtx->local_nz);
+
+    // safely convert to CSR format using the new mapping
+    int *local_row_ptr = NULL;
+    local_row_ptr = COOtoCSR(local_mtx->local_row_idx, local_mtx->local_col_idx,
+                            local_mtx->val, local_mtx->local_nz, N_local);
+    
+    
 
     MPI_Finalize();
     return EXIT_SUCCESS;
