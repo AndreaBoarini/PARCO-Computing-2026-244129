@@ -38,10 +38,15 @@ int main(int argc, char* argv[]) {
     int *displs = NULL;
     int *send_rows = NULL, *send_cols = NULL;
     double *send_vals = NULL;
+    double *random_vec = NULL;
     GlobalCOO *mtx = NULL;
 
     if(rank == 0) {
         const char* matrix_file = argv[1];
+        double max = 4.0, min = -4.0, range, div;
+        range = max - min;
+        div = RAND_MAX / range;
+        
         // only rank 0 reads the matrix
         mtx = malloc(sizeof(GlobalCOO));
 
@@ -52,6 +57,12 @@ int main(int argc, char* argv[]) {
         }
 
         printf("Matrix read successfully: %d x %d with %d non-zeros\n", M, N, nz);
+
+        // generate random vector
+        random_vec = malloc(N * sizeof(double));
+        for(int i = 0; i < N; i++) {
+            random_vec[i] = min + (rand() / div);
+        }
     }
 
     // broadcast matrix dimensions to all processes
@@ -162,12 +173,9 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    printf("[rank:%d, N_local:%d, local_nz:%d]\n", rank, N_local, local_mtx->local_nz);
-
     // safely convert to CSR format using the new mapping
     int *local_row_ptr = NULL;
-    local_row_ptr = COOtoCSR(local_mtx->local_row_idx, local_mtx->local_col_idx,
-                            local_mtx->val, local_mtx->local_nz, N_local);
+    local_row_ptr = COOtoCSR(local_mtx->local_row_idx, local_mtx->local_col_idx, local_mtx->val, local_mtx->local_nz, N_local);
     
     
 
