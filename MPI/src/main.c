@@ -5,6 +5,13 @@
 #include "csr.h"
 
 typedef struct {
+    double *owned_x;
+    double *ghost_entries;
+    int n_ghost;
+    int *ghost_idx;
+} LocalX;
+
+typedef struct {
     double *val;    
     int *local_row_idx;
     int *local_col_idx;
@@ -40,13 +47,14 @@ int main(int argc, char* argv[]) {
     double *send_vals = NULL;
     double *random_vec = NULL;
     GlobalCOO *mtx = NULL;
+    LocalX *local_x = NULL;
 
     if(rank == 0) {
         const char* matrix_file = argv[1];
         double max = 4.0, min = -4.0, range, div;
         range = max - min;
         div = RAND_MAX / range;
-        
+
         // only rank 0 reads the matrix
         mtx = malloc(sizeof(GlobalCOO));
 
@@ -62,7 +70,9 @@ int main(int argc, char* argv[]) {
         random_vec = malloc(N * sizeof(double));
         for(int i = 0; i < N; i++) {
             random_vec[i] = min + (rand() / div);
+            // printf("%f ", random_vec[i]);
         }
+        // printf("\n");
     }
 
     // broadcast matrix dimensions to all processes
@@ -119,26 +129,14 @@ int main(int argc, char* argv[]) {
 
     // tuple distribution
     // distribute row indices
-    MPI_Scatterv(send_rows, send_counts, displs, MPI_INT,
-                 local_mtx->local_row_idx, local_mtx->local_nz, MPI_INT,
-                 0, MPI_COMM_WORLD);
+    MPI_Scatterv(send_rows, send_counts, displs, MPI_INT, local_mtx->local_row_idx, local_mtx->local_nz, MPI_INT,
+                    0, MPI_COMM_WORLD);
     // distribute column indices
-    MPI_Scatterv(send_cols, send_counts, displs, MPI_INT,
-                 local_mtx->local_col_idx, local_mtx->local_nz, MPI_INT,
-                 0, MPI_COMM_WORLD);
+    MPI_Scatterv(send_cols, send_counts, displs, MPI_INT, local_mtx->local_col_idx, local_mtx->local_nz, MPI_INT,
+                    0, MPI_COMM_WORLD);
     // distribute values
-    MPI_Scatterv(send_vals, send_counts, displs, MPI_DOUBLE,
-                 local_mtx->val, local_mtx->local_nz, MPI_DOUBLE,
-                 0, MPI_COMM_WORLD);
-
-
-    // check print
-    /*
-    for(int i = 0; i < local_mtx->local_nz; i++) {
-        printf("[%d](%d, %d, %f) ", rank, local_mtx->local_row_idx[i], local_mtx->local_col_idx[i], local_mtx->val[i]);
-    }
-    printf("\n");
-    */
+    MPI_Scatterv(send_vals, send_counts, displs, MPI_DOUBLE, local_mtx->val, local_mtx->local_nz, MPI_DOUBLE,
+                    0, MPI_COMM_WORLD);
 
     // mapping from global to local row indices
     // the local rows are 'packed' in a remapped matrix
@@ -172,12 +170,52 @@ int main(int argc, char* argv[]) {
             MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
         }
     }
-
+    
     // safely convert to CSR format using the new mapping
     int *local_row_ptr = NULL;
     local_row_ptr = COOtoCSR(local_mtx->local_row_idx, local_mtx->local_col_idx, local_mtx->val, local_mtx->local_nz, N_local);
     
-    
+    // pack and distribute the local x vector
+    local_x = malloc(sizeof(LocalX));
+    local_x->owned_x = malloc(N_local * sizeof(double));
+    int *counts_x = NULL, *displs_x = NULL;
+    double *send_x = NULL;
+
+
+    if(rank == 0) {
+        counts_x = calloc(size, sizeof(int));
+        displs_x = calloc(size, sizeof(int));
+
+        // count how many entries each rank will recieve
+        for(int j = 0; j < N; j++) {
+            counts_x[j % size]++;
+        }
+
+        // get displacements
+        // same way as before with rows
+        displs_x[0] = 0;
+        for(int j = 1; j < size; j++) {
+            displs_x[j] = displs_x[j-1] + counts_x[j-1];
+        }
+
+        // prepare send_x buffer
+        send_x = malloc(N * sizeof(double));
+        int *position_x = malloc(size * sizeof(int));
+        for(int j = 0; j < size; j++) {
+            position_x[j] = displs_x[j];
+        }
+        for(int j = 0; j < N; j++) {
+            int dest = j % size;
+            int pos = position_x[dest]++;
+            send_x[pos] = random_vec[j];
+        }
+
+        free(position_x);
+    }
+
+    // dsitribute chunks of X
+    MPI_Scatterv(send_x, counts_x, displs_x, MPI_DOUBLE, local_x->owned_x, N_local, MPI_DOUBLE,
+                    0, MPI_COMM_WORLD);
 
     MPI_Finalize();
     return EXIT_SUCCESS;
