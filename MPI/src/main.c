@@ -3,26 +3,8 @@
 #include <mpi.h>
 #include "mmio.h"
 #include "csr.h"
-
-typedef struct {
-    double *owned_x;
-    double *ghost_entries;
-    int n_ghost;
-    int *ghost_idx;
-} LocalX;
-
-typedef struct {
-    double *val;    
-    int *local_row_idx;
-    int *local_col_idx;
-    int local_nz;
-} LocalCOO;
-
-typedef struct {      
-    double *val;    
-    int *row_idx;
-    int *col_idx;
-} GlobalCOO;
+#include "ghost.h"
+#include "structures.h"
 
 int main(int argc, char* argv[]) {
 
@@ -181,7 +163,6 @@ int main(int argc, char* argv[]) {
     int *counts_x = NULL, *displs_x = NULL;
     double *send_x = NULL;
 
-
     if(rank == 0) {
         counts_x = calloc(size, sizeof(int));
         displs_x = calloc(size, sizeof(int));
@@ -216,6 +197,29 @@ int main(int argc, char* argv[]) {
     // dsitribute chunks of X
     MPI_Scatterv(send_x, counts_x, displs_x, MPI_DOUBLE, local_x->owned_x, N_local, MPI_DOUBLE,
                     0, MPI_COMM_WORLD);
+
+    build_ghost_list(N, size, rank, local_x);
+
+    ghost_exchange(N, size, rank, local_x);
+
+    if(rank == 0) {
+        printf("I'm rank %d:\n", rank);
+        printf("random generated vector X:\n");
+        for(int i = 0; i < N; i++) {
+            printf("%f ", random_vec[i]);
+        }
+        printf("\n");
+        printf("From X i only own:\n");
+        for(int i = 0; i < N_local; i++) {
+            printf("%f ", local_x->owned_x[i]);
+        }
+        printf("\n");
+        printf("And my ghost entries are:\n");
+        for(int i = 0; i < local_x->n_ghost; i++) {
+            printf("%f ", local_x->ghost_idx[i], local_x->ghost_entries[i]);
+        }
+        printf("\n");
+    }
 
     MPI_Finalize();
     return EXIT_SUCCESS;
