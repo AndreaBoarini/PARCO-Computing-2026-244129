@@ -200,7 +200,13 @@ int main(int argc, char* argv[]) {
 
     build_ghost_list(N, size, rank, local_x);
 
+    // wait for all processes to reach this point
+    MPI_Barrier(MPI_COMM_WORLD);
+    
+    double t0, t1, t2, t3;
+    t0 = MPI_Wtime();
     ghost_exchange(N, size, rank, local_x);
+    t1 = MPI_Wtime();
 
     // build the complete local vector (owned + ghost)
     double *merged_local_x = calloc(N, sizeof(double));
@@ -208,7 +214,19 @@ int main(int argc, char* argv[]) {
 
     // compute the SpMV product
     double *local_y = malloc(N_local * sizeof(double));
+    t2 = MPI_Wtime();
     spmv(N_local, local_row_ptr, local_mtx->local_col_idx, local_mtx->val, merged_local_x, local_y);
+    t3 = MPI_Wtime();
+
+    double local_exchange_time = t1 - t0;
+    double local_spmv_time = t3 - t2;
+
+    // consider the slowest execution among all processes
+    // and reduce its value to rank 0
+    // (only the latter will have the final result)
+    double max_exchange_time, max_spmv_time;
+    MPI_Reduce(&local_exchange_time, &max_exchange_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&local_spmv_time, &max_spmv_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
     MPI_Finalize();
     return EXIT_SUCCESS;
