@@ -202,24 +202,13 @@ int main(int argc, char* argv[]) {
 
     ghost_exchange(N, size, rank, local_x);
 
-    if(rank == 0) {
-        printf("I'm rank %d:\n", rank);
-        printf("random generated vector X:\n");
-        for(int i = 0; i < N; i++) {
-            printf("%f ", random_vec[i]);
-        }
-        printf("\n");
-        printf("From X i only own:\n");
-        for(int i = 0; i < N_local; i++) {
-            printf("%f ", local_x->owned_x[i]);
-        }
-        printf("\n");
-        printf("And my ghost entries are:\n");
-        for(int i = 0; i < local_x->n_ghost; i++) {
-            printf("%f ", local_x->ghost_idx[i], local_x->ghost_entries[i]);
-        }
-        printf("\n");
-    }
+    // build the complete local vector (owned + ghost)
+    double *merged_local_x = calloc(N, sizeof(double));
+    build_local_x(N, N_local, size, rank, local_x, merged_local_x);
+
+    // compute the SpMV product
+    double *local_y = malloc(N_local * sizeof(double));
+    spmv(N_local, local_row_ptr, local_mtx->local_col_idx, local_mtx->val, merged_local_x, local_y);
 
     MPI_Finalize();
     return EXIT_SUCCESS;
