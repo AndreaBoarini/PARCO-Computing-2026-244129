@@ -4,7 +4,10 @@
 #include <stdlib.h>
 #include "structures.h"
 
+int compare_values(const void *a, const void *b);
 void build_ghost_list(int N, int size, int rank, LocalX *l_x);
 void ghost_exchange(int N, int size, int rank, LocalX *l_x);
+void build_local_x(int N, int N_local, int size, int rank, LocalX *l_x, double *merged_local_x);
+void spmv(int N_local, int *local_row_ptr, int *local_col_idx, double *val, double* merged_local_x, double *local_y);
 
 #endif 

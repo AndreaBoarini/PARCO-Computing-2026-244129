@@ -123,3 +123,37 @@ void ghost_exchange(int N, int size, int rank, LocalX *l_x) {
     free(recv_vals);
     free(p);
 }
+
+void build_local_x(int N, int N_local, int size, int rank, LocalX *l_x, double *merged_local_x) {
+    
+    int aux;
+
+    // insert owned entries
+    for(int i = 0; i < N_local; i++) {
+        aux = rank + i * size;
+        if(aux >= N) break;
+        merged_local_x[aux] = l_x->owned_x[i];
+    }
+
+    if(l_x->n_ghost > 0) {
+        // insert ghost entries
+        for(int i = 0; i < l_x->n_ghost; i++) {
+            aux = l_x->ghost_idx[i];
+            merged_local_x[aux] = l_x->ghost_entries[i];
+        }
+    }
+}
+
+void spmv(int N_local, int *local_row_ptr, int *local_col_idx, double *val, double *merged_local_x, double *local_y) {
+    
+    int col;
+    double sum, value, factor;
+
+    for(int i = 0; i < N_local; i++) {
+        sum = 0.0;
+        for(int j = local_row_ptr[i]; j < local_row_ptr[i+1]; j++) {
+            sum += val[j] * merged_local_x[local_col_idx[j]];
+        }
+        local_y[i] = sum;
+    }
+}
