@@ -26,4 +26,9 @@ typedef struct {
     double j;
 } Pair;
 
+typedef struct {
+    double val;
+    int rk;
+} MaxTimeRank;
+
 #endif
