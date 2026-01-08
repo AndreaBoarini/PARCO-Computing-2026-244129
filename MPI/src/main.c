@@ -218,15 +218,63 @@ int main(int argc, char* argv[]) {
     spmv(N_local, local_row_ptr, local_mtx->local_col_idx, local_mtx->val, merged_local_x, local_y);
     t3 = MPI_Wtime();
 
+    // for time measurement we consider the rank that the highest total time
+    // and communicate its specfic times (exchange and SpMV) to the root
+
     double local_exchange_time = t1 - t0;
     double local_spmv_time = t3 - t2;
+    double local_total_time = local_exchange_time + local_spmv_time;
 
-    // consider the slowest execution among all processes
-    // and reduce its value to rank 0
-    // (only the latter will have the final result)
-    double max_exchange_time, max_spmv_time;
-    MPI_Reduce(&local_exchange_time, &max_exchange_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&local_spmv_time, &max_spmv_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+    // find the maximum total time among all processes and which rank has it
+    MaxTimeRank in, out;
+    in.rk = rank;
+    in.val = local_total_time;
+
+    // use MPI_MAXLOC to find the maximum time and corresponding rank
+    // MPI_DOUBLE_INT defines how to read the structure and what element to compare
+    MPI_Reduce(&in, &out, 1, MPI_DOUBLE_INT, MPI_MINLOC, 0, MPI_COMM_WORLD);
+
+    int critical_rank;
+    if (rank == 0) critical_rank = out.rk;
+    
+    // each rank has to know the critical rank that will give its times
+    MPI_Bcast(&critical_rank, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+    // only the critical rank will store the times to send to the root
+    // the others will send 0.0
+    double send_critical_exch = (rank == critical_rank) ? local_exchange_time : 0.0;
+    double send_critical_spmv = (rank == critical_rank) ? local_spmv_time : 0.0;
+    // only the root will use them
+    double recv_critical_exch = 0.0;
+    double recv_critical_spmv = 0.0;
+
+    // send to the root the critical times
+    MPI_Reduce(&send_critical_exch, &recv_critical_exch, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&send_critical_spmv, &recv_critical_spmv, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+    switch(rank){
+        case 1:
+            printf("Rank %d: my times are: exchange = %f, SpMV = %f, total = %f\n", rank, local_exchange_time, local_spmv_time, local_total_time);
+            break;
+        case 2:
+            printf("Rank %d: my times are: exchange = %f, SpMV = %f, total = %f\n", rank, local_exchange_time, local_spmv_time, local_total_time);
+            break;
+        case 3:
+            printf("Rank %d: my times are: exchange = %f, SpMV = %f, total = %f\n", rank, local_exchange_time, local_spmv_time, local_total_time);
+            break;
+        case 4:
+            printf("Rank %d: my times are: exchange = %f, SpMV = %f, total = %f\n", rank, local_exchange_time, local_spmv_time, local_total_time);
+            break;
+        default:
+            break;
+    }
+
+    if(rank == 0) {
+        printf("Critical rank: %d\n", critical_rank);
+        printf("Ghost exchange time (critical): %f seconds\n", recv_critical_exch);
+        printf("SpMV time (critical): %f seconds\n", recv_critical_spmv);
+        printf("Total time (critical): %f seconds\n", recv_critical_exch + recv_critical_spmv);
+    }
 
     MPI_Finalize();
     return EXIT_SUCCESS;
