@@ -252,29 +252,35 @@ int main(int argc, char* argv[]) {
     MPI_Reduce(&send_critical_exch, &recv_critical_exch, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&send_critical_spmv, &recv_critical_spmv, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
-    switch(rank){
+    // load balance information
+    // min/max/avg nnz per rank
+    int sum_nnz, max_nnz, min_nnz;
+    MPI_Reduce(&local_mtx->local_nz, &max_nnz, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&local_mtx->local_nz, &min_nnz, 1, MPI_INT, MPI_MIN, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&local_mtx->local_nz, &sum_nnz, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+
+    switch(rank) {
+        case 0:
+            printf("rank: %d, local_nz: %d\n", rank, local_mtx->local_nz);
+            double avg_nnz = (double) sum_nnz / size;
+            printf("Load Balance Info:\n");
+            printf("Max nnz: %d\n", max_nnz);
+            printf("Min nnz: %d\n", min_nnz);
+            printf("Avg nnz: %.2f\n", avg_nnz);
+            break;
         case 1:
-            printf("Rank %d: my times are: exchange = %f, SpMV = %f, total = %f\n", rank, local_exchange_time, local_spmv_time, local_total_time);
+            printf("rank: %d, local_nz: %d\n", rank, local_mtx->local_nz);
             break;
         case 2:
-            printf("Rank %d: my times are: exchange = %f, SpMV = %f, total = %f\n", rank, local_exchange_time, local_spmv_time, local_total_time);
+            printf("rank: %d, local_nz: %d\n", rank, local_mtx->local_nz);
             break;
         case 3:
-            printf("Rank %d: my times are: exchange = %f, SpMV = %f, total = %f\n", rank, local_exchange_time, local_spmv_time, local_total_time);
+            printf("rank: %d, local_nz: %d\n", rank, local_mtx->local_nz);
             break;
-        case 4:
-            printf("Rank %d: my times are: exchange = %f, SpMV = %f, total = %f\n", rank, local_exchange_time, local_spmv_time, local_total_time);
-            break;
-        default:
+        default:    
             break;
     }
 
-    if(rank == 0) {
-        printf("Critical rank: %d\n", critical_rank);
-        printf("Ghost exchange time (critical): %f seconds\n", recv_critical_exch);
-        printf("SpMV time (critical): %f seconds\n", recv_critical_spmv);
-        printf("Total time (critical): %f seconds\n", recv_critical_exch + recv_critical_spmv);
-    }
 
     MPI_Finalize();
     return EXIT_SUCCESS;
