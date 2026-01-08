@@ -4,14 +4,15 @@
 #PBS -j oe
 #PBS -o run_pbs.out
 #PBS -q short_cpuQ
-#PBS -l select=1:ncpus=4:mpiprocs=4
+#PBS -l select=4:ncpus=1:mpiprocs=1
 #PBS -l walltime=01:00:00
+#PBS -l place=scatter
 
 module load mpich-3.2.1--gcc-9.1.0
 
 cd MPI/
 
 mpicc -O3 -Iinclude src/main.c src/mmio.c src/csr.c src/ghost.c -o main
-mpirun -np 2 ./main ./cage3.mtx
+mpirun -np 4 ./main ./cage3.mtx
 
 exit 0
