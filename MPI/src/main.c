@@ -203,9 +203,10 @@ int main(int argc, char* argv[]) {
     // wait for all processes to reach this point
     MPI_Barrier(MPI_COMM_WORLD);
     
+    int n_sends, n_recvs;
     double t0, t1, t2, t3;
     t0 = MPI_Wtime();
-    ghost_exchange(N, size, rank, local_x);
+    ghost_exchange(N, size, rank, local_x, &n_sends, &n_recvs);
     t1 = MPI_Wtime();
 
     // build the complete local vector (owned + ghost)
@@ -262,20 +263,28 @@ int main(int argc, char* argv[]) {
     switch(rank) {
         case 0:
             printf("rank: %d, local_nz: %d\n", rank, local_mtx->local_nz);
-            double avg_nnz = (double) sum_nnz / size;
-            printf("Load Balance Info:\n");
-            printf("Max nnz: %d\n", max_nnz);
-            printf("Min nnz: %d\n", min_nnz);
-            printf("Avg nnz: %.2f\n", avg_nnz);
+            printf("I already have: %d, and my ghosts: %d\n", N_local, local_x->n_ghost);
+            printf("my exchanged volume is %d\n", n_sends + n_recvs);
             break;
         case 1:
             printf("rank: %d, local_nz: %d\n", rank, local_mtx->local_nz);
+            printf("I already have: %d, and my ghosts: %d\n", N_local, local_x->n_ghost);
+            printf("my exchanged volume is %d\n", n_sends + n_recvs);
             break;
         case 2:
             printf("rank: %d, local_nz: %d\n", rank, local_mtx->local_nz);
+            printf("I already have: %d, and my ghosts: %d\n", N_local, local_x->n_ghost);
+            printf("my exchanged volume is %d\n", n_sends + n_recvs);
             break;
         case 3:
             printf("rank: %d, local_nz: %d\n", rank, local_mtx->local_nz);
+            printf("I already have: %d, and my ghosts: %d\n", N_local, local_x->n_ghost);
+            printf("my exchanged volume is %d\n", n_sends + n_recvs);
+            break;
+        case 4:
+            printf("rank: %d, local_nz: %d\n", rank, local_mtx->local_nz);
+            printf("I already have: %d, and my ghosts: %d\n", N_local, local_x->n_ghost);
+            printf("my exchanged volume is %d\n", n_sends + n_recvs);
             break;
         default:    
             break;

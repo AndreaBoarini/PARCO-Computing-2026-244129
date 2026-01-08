@@ -36,7 +36,7 @@ void build_ghost_list(int N, int size, int rank, LocalX *l_x) {
     free(is_ghost);
 }
 
-void ghost_exchange(int N, int size, int rank, LocalX *l_x) {
+void ghost_exchange(int N, int size, int rank, LocalX *l_x, int *n_sends, int *n_recvs) {
     
     int *send_counts = calloc(size, sizeof(int));
     int *recv_counts = calloc(size, sizeof(int));
@@ -88,6 +88,9 @@ void ghost_exchange(int N, int size, int rank, LocalX *l_x) {
     for(int i = 0; i < recv_tot; i++) {
         send_vals[i] = l_x->owned_x[recv_idx[i] / size];
     }
+
+    *n_sends = recv_tot;
+    *n_recvs = send_tot;
 
     // actual exchange of the requested values
     // note that recv_vals is allined with send_idx
