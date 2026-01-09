@@ -210,7 +210,10 @@ int main(int argc, char* argv[]) {
     t1 = MPI_Wtime();
 
     // build the complete local vector (owned + ghost)
-    double *merged_local_x = calloc(N, sizeof(double));
+    int merged_size;
+    remap_column_idx(N, size, rank, N_local, local_mtx->local_col_idx, local_x, local_mtx->local_nz, &merged_size);
+    
+    double *merged_local_x = malloc(merged_size * sizeof(double));
     build_local_x(N, N_local, size, rank, local_x, merged_local_x);
 
     // compute the SpMV product
@@ -219,8 +222,8 @@ int main(int argc, char* argv[]) {
     spmv(N_local, local_row_ptr, local_mtx->local_col_idx, local_mtx->val, merged_local_x, local_y);
     t3 = MPI_Wtime();
 
-    // for time measurement we consider the rank that the highest total time
-    // and communicate its specfic times (exchange and SpMV) to the root
+    // for time measurement we consider the rank with highest total time
+    // and communicate its specific times (exchange and SpMV) to the root
 
     double local_exchange_time = t1 - t0;
     double local_spmv_time = t3 - t2;

@@ -155,6 +155,35 @@ void build_local_x(int N, int N_local, int size, int rank, LocalX *l_x, double *
     }
 }
 
+void remap_column_idx(int N, int size, int rank, int N_local, int *local_col_idx, LocalX *l_x, int local_nz, int *merged_size) {
+    // map the column indices from global to local
+    int *map = malloc(N * sizeof(int));
+    int local_idx = 0;
+    for(int i = 0; i < N; i++) {
+        map[i] = -1;
+    }
+
+    // map the owned entries
+    for(int i = 0; i < N_local; i++) {
+        int global_idx = rank + i * size;
+        if(global_idx < N) map[global_idx] = local_idx++;
+    }
+
+    // map the ghost entries
+    for(int i = 0; i < l_x->n_ghost; i++) {
+        int global_idx = l_x->ghost_idx[i];
+        map[global_idx] = local_idx++;
+    }
+
+    // remap the column indices
+    for(int i = 0; i < local_nz; i++) {
+        local_col_idx[i] = map[local_col_idx[i]];
+    }
+
+    *merged_size = local_idx;
+    free(map);
+}
+
 void spmv(int N_local, int *local_row_ptr, int *local_col_idx, double *val, double *merged_local_x, double *local_y) {
     
     int col;
