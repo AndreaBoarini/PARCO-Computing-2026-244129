@@ -109,12 +109,12 @@ void ghost_exchange(int N, int size, int rank, LocalX *l_x, int *n_sends, int *n
 
     // sorting is also needed to execute a faster lookup for the SpMV step
     Pair *p = malloc(send_tot * sizeof(Pair));
-    qsort(p, send_tot, sizeof(Pair), compare_values);
-
+    
     for(int i = 0; i < send_tot; i++) {
         p[i].i = send_idx[i];
         p[i].j = recv_vals[i];
     }
+    qsort(p, send_tot, sizeof(Pair), compare_values);
 
     int pair_idx = 0;
     for(int i = 0; i < l_x->n_ghost; i++) {
