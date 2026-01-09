@@ -194,11 +194,11 @@ int main(int argc, char* argv[]) {
         free(position_x);
     }
 
-    // dsitribute chunks of X
+    // distribute chunks of X
     MPI_Scatterv(send_x, counts_x, displs_x, MPI_DOUBLE, local_x->owned_x, N_local, MPI_DOUBLE,
                     0, MPI_COMM_WORLD);
 
-    build_ghost_list(N, size, rank, local_x);
+    build_ghost_list(N, size, rank, local_x, local_row_ptr, local_mtx->local_col_idx, N_local);
 
     // wait for all processes to reach this point
     MPI_Barrier(MPI_COMM_WORLD);

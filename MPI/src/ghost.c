@@ -8,28 +8,36 @@ int compare_values(const void *a, const void *b) {
     return (x > y) - (x < y);
 }
 
-void build_ghost_list(int N, int size, int rank, LocalX *l_x) {
+void build_ghost_list(int N, int size, int rank, LocalX *l_x, int *local_row_ptr, int *local_col_idx, int N_local) {
 
     int n_ghost = 0, aux = 0;
     bool *is_ghost = calloc(N, sizeof(bool));
 
-    // create the ghost mask (N = M = dimension of X)
-    for(int i = 0; i < N; i++) {
-        if(i % size != rank) is_ghost[i] = true;
+    // identify the remote columns needed from the local CSR matrix
+    for(int i = 0; i < N_local; i++) {
+        for(int j = local_row_ptr[i]; j < local_row_ptr[i+1]; j++) {
+            int col = local_col_idx[j];
+            is_ghost[col] = true;
+        }
     }
 
-    // count ghost entries
+    // mark as ghost those needed entries that are not owned by this rank
     for(int i = 0; i < N; i++) {
-        if(is_ghost[i]) n_ghost++;
+        if(is_ghost[i] && (i % size != rank)) {
+            n_ghost++;
+        }
     }
 
     l_x->n_ghost = n_ghost;
     l_x->ghost_entries = malloc(n_ghost * sizeof(double));
     l_x->ghost_idx = malloc(n_ghost * sizeof(int));
 
-    // fill ghost entries
+    // fill ghost_idx onyl with the needed remote indices
+    // filled with global indices
     for(int i = 0; i < N; i++) {
-        if(is_ghost[i]) l_x->ghost_idx[aux++] = i;
+        if(is_ghost[i] && (i % size != rank)) {
+            l_x->ghost_idx[aux++] = i;
+        }
     }
 
     // deallocate ghost mask
