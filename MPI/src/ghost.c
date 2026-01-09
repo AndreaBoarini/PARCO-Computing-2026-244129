@@ -137,21 +137,16 @@ void ghost_exchange(int N, int size, int rank, LocalX *l_x, int *n_sends, int *n
 
 void build_local_x(int N, int N_local, int size, int rank, LocalX *l_x, double *merged_local_x) {
     
-    int aux;
+    int aux = 0;
 
     // insert owned entries
     for(int i = 0; i < N_local; i++) {
-        aux = rank + i * size;
-        if(aux >= N) break;
-        merged_local_x[aux] = l_x->owned_x[i];
+        merged_local_x[aux++] = l_x->owned_x[i];
     }
 
-    if(l_x->n_ghost > 0) {
-        // insert ghost entries
-        for(int i = 0; i < l_x->n_ghost; i++) {
-            aux = l_x->ghost_idx[i];
-            merged_local_x[aux] = l_x->ghost_entries[i];
-        }
+    // insert ghost entries
+    for(int i = 0; i < l_x->n_ghost; i++) {
+        merged_local_x[aux++] = l_x->ghost_entries[i];
     }
 }
 
