@@ -256,6 +256,10 @@ int main(int argc, char* argv[]) {
     MPI_Reduce(&send_critical_exch, &recv_critical_exch, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&send_critical_spmv, &recv_critical_spmv, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
+    // convert times in ms
+    recv_critical_exch *= 1000.0;
+    recv_critical_spmv *= 1000.0;
+
     // load balance information
     // min/max/avg nnz per rank
     int sum_nnz, max_nnz, min_nnz;
@@ -270,13 +274,13 @@ int main(int argc, char* argv[]) {
                                 local_x->n_ghost * sizeof(int) + // ghost_idx
                                 N_local * sizeof(double); // local_y
     
-    // conversion to MB
-    double local_memory_MB = local_memory_used / (1024.0 * 1024.0);
-    double max_memory_MB, min_memory_MB, sum_memory_MB;
-    MPI_Reduce(&local_memory_MB, &sum_memory_MB, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&local_memory_MB, &max_memory_MB, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&local_memory_MB, &min_memory_MB, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
-    double avg_memory_MB = sum_memory_MB / size;
+    // conversion to KB
+    double local_memory_KB = local_memory_used / 1024.0;
+    double max_memory_KB, min_memory_KB, sum_memory_KB;
+    MPI_Reduce(&local_memory_KB, &sum_memory_KB, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&local_memory_KB, &max_memory_KB, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&local_memory_KB, &min_memory_KB, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
+    double avg_memory_KB = sum_memory_KB / size;
 
     // exchange volume per rank (only vector's values)
     int total_exchange = n_sends + n_recvs;
@@ -285,6 +289,24 @@ int main(int argc, char* argv[]) {
     MPI_Reduce(&total_exchange, &min_exchange, 1, MPI_INT, MPI_MIN, 0, MPI_COMM_WORLD);
     MPI_Reduce(&total_exchange, &sum_exchange, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
     double avg_exchange = sum_exchange / (double)size;
+
+    if(rank == 0) {
+        // print times
+        printf("%f\n", recv_critical_spmv);
+        printf("%f\n", recv_critical_exch);
+        // print communication volume
+        printf("%d\n", max_exchange);
+        printf("%d\n", min_exchange);
+        printf("%f\n", avg_exchange);
+        // print load balance
+        printf("%d\n", max_nnz);
+        printf("%d\n", min_nnz);
+        printf("%f\n", sum_nnz / (double)size);
+        // print memory footprint
+        printf("%f\n", max_memory_KB);
+        printf("%f\n", min_memory_KB);
+        printf("%f\n", avg_memory_KB);
+    }
 
     MPI_Finalize();
 
