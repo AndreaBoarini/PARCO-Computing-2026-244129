@@ -24,8 +24,8 @@ def main():
     ap.add_argument("--outdir", type=str, default="weak_scaling_mtx")
     ap.add_argument("--nnz-per-row", type=int, default=32)
     ap.add_argument("--seed", type=int, default=1)
-    ap.add_argument("--vmin", type=float, default=-4.0)
-    ap.add_argument("--vmax", type=float, default=4.0)
+    ap.add_argument("--vmin", type=float, default=-10.0)
+    ap.add_argument("--vmax", type=float, default=10.0)
     args = ap.parse_args()
 
     os.makedirs(args.outdir, exist_ok=True)
@@ -33,7 +33,7 @@ def main():
 
     for exp in range(8, 17):
         N = 2**exp
-        fn = f"synthetic_N{N}_k{args.nnz_per_row}.mtx"
+        fn = f"synthetic_{N}x{N}_K{args.nnz_per_row}.mtx"
         path = os.path.join(args.outdir, fn)
         print(f"Generating {fn}: N={N}, k={args.nnz_per_row}, nz={N*args.nnz_per_row}")
         write_mtx_fixed_k(path, N, args.nnz_per_row, rng, args.vmin, args.vmax)
