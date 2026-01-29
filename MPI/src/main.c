@@ -212,7 +212,7 @@ int main(int argc, char* argv[]) {
     // build the complete local vector (owned + ghost)
     int merged_size;
     remap_column_idx(N, size, rank, N_local, local_mtx->local_col_idx, local_x, local_mtx->local_nz, &merged_size);
-    
+
     double *merged_local_x = malloc(merged_size * sizeof(double));
     build_local_x(N, N_local, size, rank, local_x, merged_local_x);
 
@@ -236,7 +236,7 @@ int main(int argc, char* argv[]) {
 
     // use MPI_MAXLOC to find the maximum time and corresponding rank
     // MPI_DOUBLE_INT defines how to read the structure and what element to compare
-    MPI_Reduce(&in, &out, 1, MPI_DOUBLE_INT, MPI_MINLOC, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&in, &out, 1, MPI_DOUBLE_INT, MPI_MAXLOC, 0, MPI_COMM_WORLD);
 
     int critical_rank;
     if (rank == 0) critical_rank = out.rk;
@@ -263,37 +263,30 @@ int main(int argc, char* argv[]) {
     MPI_Reduce(&local_mtx->local_nz, &min_nnz, 1, MPI_INT, MPI_MIN, 0, MPI_COMM_WORLD);
     MPI_Reduce(&local_mtx->local_nz, &sum_nnz, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
-    switch(rank) {
-        case 0:
-            printf("rank: %d, local_nz: %d\n", rank, local_mtx->local_nz);
-            printf("I already have: %d, and my ghosts: %d\n", N_local, local_x->n_ghost);
-            printf("my exchanged volume is %d\n", n_sends + n_recvs);
-            break;
-        case 1:
-            printf("rank: %d, local_nz: %d\n", rank, local_mtx->local_nz);
-            printf("I already have: %d, and my ghosts: %d\n", N_local, local_x->n_ghost);
-            printf("my exchanged volume is %d\n", n_sends + n_recvs);
-            break;
-        case 2:
-            printf("rank: %d, local_nz: %d\n", rank, local_mtx->local_nz);
-            printf("I already have: %d, and my ghosts: %d\n", N_local, local_x->n_ghost);
-            printf("my exchanged volume is %d\n", n_sends + n_recvs);
-            break;
-        case 3:
-            printf("rank: %d, local_nz: %d\n", rank, local_mtx->local_nz);
-            printf("I already have: %d, and my ghosts: %d\n", N_local, local_x->n_ghost);
-            printf("my exchanged volume is %d\n", n_sends + n_recvs);
-            break;
-        case 4:
-            printf("rank: %d, local_nz: %d\n", rank, local_mtx->local_nz);
-            printf("I already have: %d, and my ghosts: %d\n", N_local, local_x->n_ghost);
-            printf("my exchanged volume is %d\n", n_sends + n_recvs);
-            break;
-        default:    
-            break;
-    }
+    // memory footprint for each rank
+    size_t local_memory_used = (N_local + 1) * sizeof(int) + // row_ptr
+                                local_mtx->local_nz * (sizeof(int) + sizeof(double)) + // col_idx + val
+                                (N_local + local_x->n_ghost) * sizeof(double) + // owned_x + ghost_entries
+                                local_x->n_ghost * sizeof(int) + // ghost_idx
+                                N_local * sizeof(double); // local_y
+    
+    // conversion to MB
+    double local_memory_MB = local_memory_used / (1024.0 * 1024.0);
+    double max_memory_MB, min_memory_MB, sum_memory_MB;
+    MPI_Reduce(&local_memory_MB, &sum_memory_MB, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&local_memory_MB, &max_memory_MB, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&local_memory_MB, &min_memory_MB, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
+    double avg_memory_MB = sum_memory_MB / size;
 
+    // exchange volume per rank (only vector's values)
+    int total_exchange = n_sends + n_recvs;
+    int max_exchange, min_exchange, sum_exchange;
+    MPI_Reduce(&total_exchange, &max_exchange, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&total_exchange, &min_exchange, 1, MPI_INT, MPI_MIN, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&total_exchange, &sum_exchange, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+    double avg_exchange = sum_exchange / (double)size;
 
     MPI_Finalize();
+
     return EXIT_SUCCESS;
 }
