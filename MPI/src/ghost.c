@@ -8,6 +8,12 @@ int compare_values(const void *a, const void *b) {
     return (x > y) - (x < y);
 }
 
+int compare_doubles(const void *a, const void *b) {
+    double x = *(const double *)a;
+    double y = *(const double *)b;
+    return (x > y) - (x < y);
+}
+
 void build_ghost_list(int N, int size, int rank, LocalX *l_x, int *local_row_ptr, int *local_col_idx, int N_local) {
 
     int n_ghost = 0, aux = 0;
@@ -44,7 +50,7 @@ void build_ghost_list(int N, int size, int rank, LocalX *l_x, int *local_row_ptr
     free(is_ghost);
 }
 
-void ghost_exchange(int N, int size, int rank, LocalX *l_x, int *n_sends, int *n_recvs) {
+void ghost_exchange(int N, int size, int rank, LocalX *l_x, long long int *n_sends, long long int *n_recvs) {
     
     int *send_counts = calloc(size, sizeof(int));
     int *recv_counts = calloc(size, sizeof(int));
@@ -191,4 +197,13 @@ void spmv(int N_local, int *local_row_ptr, int *local_col_idx, double *val, doub
         }
         local_y[i] = sum;
     }
+}
+
+double percentile90th(double *data, int n) {
+    qsort(data, n, sizeof(double), compare_doubles);
+    int val = (9*n + 9)/10;
+    int index = val - 1;
+    if(index < 0) index = 0;
+    if(index >= n) index = n - 1;
+    return data[index];
 }
