@@ -1,18 +1,91 @@
 #!/bin/bash
 
-#PBS -N mpi_main
+#PBS -N mpi_spmv_simulation
 #PBS -j oe
-#PBS -o run_pbs.out
+#PBS -o results.out
 #PBS -q short_cpuQ
-#PBS -l select=4:ncpus=1:mpiprocs=1
-#PBS -l walltime=01:00:00
-#PBS -l place=scatter
+#PBS -l select=4:ncpus=32:mpiprocs=32
+#PBS -l walltime=05:59:59
+#PBS -l place=scatter:excl
 
 module load mpich-3.2.1--gcc-9.1.0
 
 cd MPI/
 
+MPI_BIND="-bind-to core"
+WEAK_DIR="data/synthetic_matrix_weak_scaling"
+STRONG_DIR="data/real_matrix"
+
+OUTDIR="results"
+LOGDIR="${OUTDIR}/logs"
+mkdir -p "$OUTDIR" "$LOGDIR"
+
+WEAK_OUTPUT="$OUTDIR/weak_scaling.csv"
+STRONG_OUTPUT="$OUTDIR/strong_scaling.csv"
+
+echo "matrix_name,rows,procs,computation_time,communication_time,max_vol,min_vol,avg_vol,max_load,min_load,avg_load,max_mem_KB,min_mem_KB,avg_mem_KB" > "$WEAK_OUTPUT"
+echo "matrix_name,rows,procs,computation_time,communication_time,max_vol,min_vol,avg_vol,max_load,min_load,avg_load,max_mem_KB,min_mem_KB,avg_mem_KB" > "$STRONG_OUTPUT"
+
+NPS=(1 2 4 8 16 32 64 128)
+
+get_rows() {
+    awk '!/^%/ {print $1; exit}' "$1"
+}
+
+extract_csv_line() {
+    local log="$1"
+    mapfile -t v < <(grep -v '^[[:space:]]*$' "$log" | tail -n 11)
+
+    local line="${v[0]}"
+    for i in {1..10}; do
+        line="${line},${v[i]}"
+    done
+    echo "$line"
+}
+
+single_run() {
+    local procs=$1
+    local path=$2
+    local out_file=$3
+    
+    local base="$(basename "$path")"
+    local rows="$(get_rows "$path")"
+
+    # estabilish how many processes each node will get based on the resources requested
+    # round-robin distribution
+    local ppn=$(((procs + 3) / 4))
+    if [ "$ppn" -lt 1 ]; then ppn=1; fi
+    if [ "$ppn" -gt 32 ]; then ppn=32; fi
+
+    # map each process considering the number of process for each node
+    local map_by="-map-by core -ppn ${ppn}"
+    local log="${LOGDIR}/${base}_p${procs}.log"
+
+    mpirun -np "$procs" $map_by $MPI_BIND ./main "$path" > "$log" 2>&1
+
+    local csv_line="$(extract_csv_line "$log")"
+
+    echo "${base},${rows},${procs},${csv_line}" >> "$out_file"
+}
+
 mpicc -O3 -Iinclude src/main.c src/mmio.c src/csr.c src/ghost.c -o main
-mpirun -np 4 ./main ./cage3.mtx
+
+# weak scaling measurements
+mapfile -t WEAK_MATRICES < <(find "$WEAK_DIR" -maxdepth 1 -type f -name '*.mtx' | sort -V)
+for i in "${!NPS[@]}"; do
+    single_run "${NPS[i]}" "${WEAK_MATRICES[i]}" "$WEAK_OUTPUT"
+done
+
+echo "weak scaling completed..."
+
+# strong scaling measurements
+mapfile -t STRONG_MATRICES < <(find "$STRONG_DIR" -maxdepth 1 -type f -name '*.mtx' | sort -V)
+for matrix in "${STRONG_MATRICES[@]}"; do
+    for procs in "${NPS[@]}"; do
+        single_run "$procs" "$matrix" "$STRONG_OUTPUT"
+    done
+done
+
+echo "strong scaling completed..."
 
 exit 0
