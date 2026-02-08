@@ -86,7 +86,7 @@ Any run of the project will cause an **overwriting** both on the `.csv` and `.pn
 (if same inputs are used, the difference between the values although is minimal and does not affect on the conclusions of the research).
 
 # Job submission
-The Job submission is entrusted to the `scripts/run.pbs` script. It will essentially, instantiate a job with the required specifications for the project to run and will execute
+The Job submission is entrusted to the `script/run.pbs` script. It will essentially, instantiate a job with the required specifications for the project to run and will execute
 the simulations.
 
 Once in the root directory of the project:
