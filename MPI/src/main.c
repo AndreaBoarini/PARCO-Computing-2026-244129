@@ -263,9 +263,8 @@ int main(int argc, char* argv[]) {
         // wait for all processes to reach this point
         MPI_Barrier(MPI_COMM_WORLD);
 
-        double t0 = MPI_Wtime();
-        ghost_exchange(N, size, rank, local_x, &n_sends, &n_recvs);
-        double t1 = MPI_Wtime();
+        double t0, t1;
+        ghost_exchange(N, size, rank, local_x, &n_sends, &n_recvs, &t0, &t1);
 
         build_local_x(N, N_local, size, rank, local_x, merged_local_x);
 
@@ -276,6 +275,7 @@ int main(int argc, char* argv[]) {
 
         double local_exchange = t1 - t0;
         double local_spmv = t3 - t2;
+        (size == 1) ? (local_exchange = 0.0) : local_exchange;
         double local_total = local_exchange + local_spmv;
         
         // for time measurement we consider the rank with highest total time

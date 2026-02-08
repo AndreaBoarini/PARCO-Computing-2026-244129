@@ -50,7 +50,7 @@ void build_ghost_list(int N, int size, int rank, LocalX *l_x, int *local_row_ptr
     free(is_ghost);
 }
 
-void ghost_exchange(int N, int size, int rank, LocalX *l_x, long long int *n_sends, long long int *n_recvs) {
+void ghost_exchange(int N, int size, int rank, LocalX *l_x, long long int *n_sends, long long int *n_recvs, double *t0, double *t1) {
     
     int *send_counts = calloc(size, sizeof(int));
     int *recv_counts = calloc(size, sizeof(int));
@@ -110,8 +110,10 @@ void ghost_exchange(int N, int size, int rank, LocalX *l_x, long long int *n_sen
     // note that recv_vals is allined with send_idx
     // it needs to be inserted into l_x->ghost_entries respecting the order of l_x->ghost_idx
     double *recv_vals = malloc(send_tot * sizeof(double));
+    *t0 = MPI_Wtime();
     MPI_Alltoallv(send_vals, recv_counts, recv_displs, MPI_DOUBLE, recv_vals, send_counts, send_displs, MPI_DOUBLE,
                   MPI_COMM_WORLD);
+    *t1 = MPI_Wtime();
 
     // sorting is also needed to execute a faster lookup for the SpMV step
     Pair *p = malloc(send_tot * sizeof(Pair));
