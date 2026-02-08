@@ -9,8 +9,9 @@ cd "$DATA_DIR" || exit
 
 # matrices used as inputs
 declare -a urls=(
-  https://suitesparse-collection-website.herokuapp.com/MM/HB/bcsstk15.tar.gz
   https://suitesparse-collection-website.herokuapp.com/MM/Norris/torso3.tar.gz
+  https://suitesparse-collection-website.herokuapp.com/MM/HB/bcsstk15.tar.gz
+  https://suitesparse-collection-website.herokuapp.com/MM/VLSI/vas_stokes_4M.tar.gz
   https://suitesparse-collection-website.herokuapp.com/MM/Schenk_AFE/af_shell7.tar.gz
 )
 
