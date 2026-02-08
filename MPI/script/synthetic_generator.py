@@ -13,7 +13,6 @@ def write_mtx_fixed_k(path, N, k, rng, vmin = -20.0, vmax = 20.0):
         f.write(f"% synthetic random, fixed nnz per row = {k}\n")
         f.write(f"{N} {N} {nz}\n")
 
-        # 1-based indexing for .mtx files
         for i in range(1, N + 1):
             cols = rng.choice(N, size=k, replace=False) + 1
             vals = rng.uniform(vmin, vmax, size=k)

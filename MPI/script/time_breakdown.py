@@ -3,8 +3,6 @@ import matplotlib.pyplot as plt
 import argparse
 import os
 
-# --- CONFIGURAZIONE STILE REPORT ---
-# Applica lo stesso stile dell'altro script per coerenza
 plt.rcParams.update({
     'font.family': 'sans-serif',
     'font.size': 12,               # Testo generale
@@ -16,7 +14,6 @@ plt.rcParams.update({
     'figure.titlesize': 14
 })
 
-# Configura il parser degli argomenti
 parser = argparse.ArgumentParser(description='Genera grafici di scaling (Strong o Weak).')
 parser.add_argument('--type', type=str, choices=['strong', 'weak'], required=True,
                     help='Tipo di scaling da analizzare: "strong" o "weak"')
@@ -27,7 +24,6 @@ parser.add_argument('--linear', action='store_true',
 
 args = parser.parse_args()
 
-# Determina se usare la scala logaritmica
 use_log = False
 if args.type == 'weak':
     use_log = True
@@ -37,22 +33,17 @@ if args.linear:
     use_log = False
 
 def generate_plot(df, title_suffix, filename, log_scale=False):
-    # Ordina per numero di processi
     df_sorted = df.sort_values('procs')
     
-    # Prepara i dati
     procs = df_sorted['procs'].astype(str)
     comp_time = df_sorted['computation_time']
     comm_time = df_sorted['communication_time']
     
-    # --- DIMENSIONE UNIFICATA (8x6) ---
     plt.figure(figsize=(8, 6))
     
-    # Disegna le barre
     plt.bar(procs, comp_time, label='Computation Time', color="#0d1161", zorder=3, edgecolor='black', linewidth=0.5)
     plt.bar(procs, comm_time, bottom=comp_time, label='Communication Time', color="#bbbbbb", zorder=3, edgecolor='black', linewidth=0.5)
     
-    # Imposta la scala logaritmica
     if log_scale:
         plt.yscale('log')
         min_comp = comp_time[comp_time > 0].min()
@@ -64,26 +55,22 @@ def generate_plot(df, title_suffix, filename, log_scale=False):
         plt.ylabel('Total Execution Time (ms)')
         title_extra = ''
 
-    # Etichette e Titoli
     plt.xlabel('Processes')
     plt.title(f'{title_suffix} {title_extra}', fontweight='bold')
-    plt.legend(frameon=True, framealpha=0.9) # Legenda leggibile
+    plt.legend(frameon=True, framealpha=0.9)
     
-    # Griglia
     if log_scale:
         plt.grid(True, which="both", axis='y', linestyle='--', alpha=0.5, zorder=0)
     else:
         plt.grid(axis='y', linestyle='--', alpha=0.7, zorder=0)
     
-    # --- SALVATAGGIO OTTIMIZZATO (No spazi bianchi) ---
     plt.tight_layout()
     plt.savefig(filename, dpi=300, bbox_inches='tight', pad_inches=0.1)
     print(f"Grafico salvato: {filename}")
     plt.close()
 
-# Logica principale
 if args.type == 'strong':
-    file_path = 'results/strong_test.csv'
+    file_path = 'result/strong_test.csv'
     if not os.path.exists(file_path):
         if os.path.exists('strong_scaling.csv'): file_path = 'strong_scaling.csv'
         else:
@@ -101,7 +88,7 @@ if args.type == 'strong':
                       log_scale=use_log)
 
 elif args.type == 'weak':
-    file_path = 'results/weak_test.csv'
+    file_path = 'result/weak_test.csv'
     if not os.path.exists(file_path):
         if os.path.exists('weak_test.csv'): file_path = 'weak_test.csv'
         elif os.path.exists('weak_scaling.csv'): file_path = 'weak_scaling.csv'
