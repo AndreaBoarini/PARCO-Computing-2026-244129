@@ -62,4 +62,4 @@ def plot_efficiency_grouped(file_path):
     plt.savefig(output_filename, dpi=300, bbox_inches='tight', pad_inches=0.1)
     print(f"Grafico salvato: {output_filename}")
 
-plot_efficiency_grouped('result/strong_test.csv')
+plot_efficiency_grouped('result/strong_scaling.csv')

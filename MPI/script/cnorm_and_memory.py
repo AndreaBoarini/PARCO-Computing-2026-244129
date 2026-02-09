@@ -81,4 +81,4 @@ def plot_vertical_weak_scaling(file_path):
     plt.savefig(output_filename, dpi=300, bbox_inches='tight', pad_inches=0.1)
     print(f"Grafico salvato: {output_filename}")
 
-plot_vertical_weak_scaling('result/weak_test.csv')
+plot_vertical_weak_scaling('result/weak_scaling.csv')

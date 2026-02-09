@@ -15,7 +15,7 @@ MPI_BIND="-bind-to core"
 WEAK_DIR="data/synthetic_matrix_weak_scaling"
 STRONG_DIR="data/real_matrix"
 
-OUTDIR="results"
+OUTDIR="result"
 LOGDIR="${OUTDIR}/logs"
 mkdir -p "$OUTDIR" "$LOGDIR"
 

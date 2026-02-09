@@ -73,4 +73,4 @@ def plot_grouped_speedup(file_path):
     plt.savefig(output_filename, dpi=300, bbox_inches='tight', pad_inches=0.1)
     print(f"Grafico salvato: {output_filename}")
 
-plot_grouped_speedup('result/strong_test.csv')
+plot_grouped_speedup('result/strong_scaling.csv')

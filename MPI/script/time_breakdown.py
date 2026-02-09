@@ -70,7 +70,7 @@ def generate_plot(df, title_suffix, filename, log_scale=False):
     plt.close()
 
 if args.type == 'strong':
-    file_path = 'result/strong_test.csv'
+    file_path = 'result/strong_scaling.csv'
     if not os.path.exists(file_path):
         if os.path.exists('strong_scaling.csv'): file_path = 'strong_scaling.csv'
         else:
@@ -88,7 +88,7 @@ if args.type == 'strong':
                       log_scale=use_log)
 
 elif args.type == 'weak':
-    file_path = 'result/weak_test.csv'
+    file_path = 'result/weak_scaling.csv'
     if not os.path.exists(file_path):
         if os.path.exists('weak_test.csv'): file_path = 'weak_test.csv'
         elif os.path.exists('weak_scaling.csv'): file_path = 'weak_scaling.csv'
